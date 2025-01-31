@@ -16,7 +16,7 @@ use Closure;
 
 final class MyDB {
 
-    /** @var array<string, IDbConfig> */
+    /** @var array<string, class-string<IDbConfig>> */
     private static array $configs = [];
     private static ?MyDB $instance = null;
     private static string $default = 'mysql';
@@ -39,7 +39,7 @@ final class MyDB {
         if(is_null($db) || !isset(self::$configs[$db])) {
             throw new ConfigNotFoundException($db);
         }
-        $config = self::$configs[$db];
+        $config = new self::$configs[$db];
         $this->config = $config;
 
         try {
@@ -66,11 +66,21 @@ final class MyDB {
         return self::$instance = new self($db ?? self::$default);
     }
 
-    public static function addConfig(string $name, IDbConfig $config, bool $isDefault = false): void {
+    /**
+     * @param class-string<IDbConfig> $config
+     */
+    public static function addConfig(string $name, string $config, bool $isDefault = false): void {
         self::$configs[$name] = $config;
         if($isDefault) {
             self::$default = $name;
         }
+    }
+
+    /**
+     * @param array<string, class-string<IDbConfig>> $configs
+     */
+    public static function addConfigs(array $configs): void {
+        self::$configs = array_merge(self::$configs, $configs);
     }
 
     public function get(string $query, array $params = [], ?Closure $wrapper = null): array {
