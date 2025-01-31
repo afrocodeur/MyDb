@@ -82,6 +82,9 @@ final class MyDB {
     public static function addConfigs(array $configs): void {
         self::$configs = array_merge(self::$configs, $configs);
     }
+    public static function setDefault(string $name): void {
+        self::$default = $name;
+    }
 
     public function get(string $query, array $params = [], ?Closure $wrapper = null): array {
         $query = $this->pdo->prepare($query);
