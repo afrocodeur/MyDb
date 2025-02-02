@@ -16,12 +16,12 @@ use Closure;
 
 final class MyDB {
 
-    /** @var array<string, class-string<IDbConfig>> */
+    /** @var array<string, class-string<IConnectionConfig>> */
     private static array $configs = [];
     private static ?MyDB $instance = null;
     private static string $default = 'mysql';
 
-    private IDbConfig $config;
+    private IConnectionConfig $config;
 
     private PDO $pdo;
 
@@ -67,7 +67,7 @@ final class MyDB {
     }
 
     /**
-     * @param class-string<IDbConfig> $config
+     * @param class-string<IConnectionConfig> $config
      */
     public static function addConfig(string $name, string $config, bool $isDefault = false): void {
         self::$configs[$name] = $config;
@@ -77,7 +77,7 @@ final class MyDB {
     }
 
     /**
-     * @param array<string, class-string<IDbConfig>> $configs
+     * @param array<string, class-string<IConnectionConfig>> $configs
      */
     public static function addConfigs(array $configs): void {
         self::$configs = array_merge(self::$configs, $configs);

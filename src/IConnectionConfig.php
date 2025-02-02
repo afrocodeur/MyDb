@@ -2,7 +2,7 @@
 
 namespace MyDB;
 
-interface IDbConfig {
+interface IConnectionConfig {
 
     public function getDsn(): string;
     public function getOptions(): array;
