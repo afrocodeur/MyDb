@@ -7,10 +7,38 @@ use MyDB\Exceptions\DriverNotFoundException;
 use MyDB\ILogger;
 use MyDB\MyDB;
 
-readonly class DbMigrator {
+class DbMigrator {
 
+    /** @var null|class-string<IMigrationConfig> */
+    private static ?string $logClassName = null;
+    /** @var class-string<IMigrationConfig> */
+    private static string $configClassName;
+    private IMigrationConfig $config;
+    private ?ILogger $logger = null;
 
-    public function __construct(private IMigrationConfig $config, private ?ILogger $logger= null) {
+    public function __construct(?IMigrationConfig $config = null, ?ILogger $logger = null) {
+
+        if($config) {
+            $this->config = $config;
+        } else {
+            $this->config = new self::$configClassName;
+        }
+
+        if($logger) {
+            $this->logger = $logger;
+        } else if(self::$logClassName) {
+            $this->logger = new self::$logClassName;
+        }
+    }
+
+    /**
+     * @param class-string<IMigrationConfig> $configClassName
+     */
+    public static function setConfig(string $configClassName): void {
+        self::$configClassName = $configClassName;
+    }
+    public static function setLogger(string $logClassName): void {
+        self::$logClassName = $logClassName;
     }
 
     /**
