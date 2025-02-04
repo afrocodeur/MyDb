@@ -2,7 +2,7 @@
 
 namespace MyDB\Migration;
 
-use Exceptions\MigrationVersionNotFoundException;
+use MyDB\Exceptions\MigrationVersionNotFoundException;
 use MyDB\Exceptions\DriverNotFoundException;
 use MyDB\ILogger;
 use MyDB\MyDB;

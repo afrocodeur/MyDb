@@ -2,7 +2,7 @@
 
 namespace MyDB;
 
-use Exceptions\ConfigNotFoundException;
+use MyDB\Exceptions\ConfigNotFoundException;
 use MyDB\Exceptions\DriverNotFoundException;
 use MyDB\Migration\IMigrationBuilder;
 use MyDB\QueryBuilder\IQueryBuilder;
