@@ -15,6 +15,7 @@ class DbMigrator {
     private static string $configClassName;
     private IMigrationConfig $config;
     private ?ILogger $logger = null;
+    private int $nbMigrationsExecuted = 0;
 
     public function __construct(?IMigrationConfig $config = null, ?ILogger $logger = null) {
 
@@ -39,6 +40,10 @@ class DbMigrator {
     }
     public static function setLogger(string $logClassName): void {
         self::$logClassName = $logClassName;
+    }
+
+    public function executedMigrations(): int {
+        return $this->nbMigrationsExecuted;
     }
 
     /**
@@ -97,9 +102,11 @@ class DbMigrator {
         $startFromIndex = ($startFromIndex === false ? 0 : ($shouldRollback ? $startFromIndex : $startFromIndex + 1));
 
         $versionsToRun = array_slice($versions, $startFromIndex);
+        $this->nbMigrationsExecuted = 0;
         foreach ($versionsToRun as $versionToRun) {
             $this->logger?->info("Running version : $versionToRun ");
             $nbMigrations = $this->runVersionMigrations($versionToRun, $shouldRollback);
+            $this->nbMigrationsExecuted += $nbMigrations;
             $this->logger?->success("$nbMigrations migrations executed");
             if($versionToRun === $toVersion) {
                 break;
