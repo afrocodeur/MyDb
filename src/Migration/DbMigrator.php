@@ -182,18 +182,18 @@ class DbMigrator {
      * @throws MigrationVersionNotFoundException
      * @throws DriverNotFoundException
      */
-    public function run(string $version): void {
+    public function run(string $version, bool $rollback = false): void {
         $this->assertVersion($version);
-        $this->runVersionMigrations($version);
+        $this->runVersionMigrations($version, $rollback);
     }
 
     /**
      * @throws MigrationVersionNotFoundException
      * @throws DriverNotFoundException
      */
-    public function reset(?string $fromVersion = null): void {
+    public function reset(?string $to = null): void {
         $currentVersion = $this->getCurrentVersion();
-        $this->rollback($fromVersion);
+        $this->rollback($to);
         $this->migrate($currentVersion);
     }
 

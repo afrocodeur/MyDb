@@ -14,8 +14,6 @@ interface IMigrationConfig {
      */
     public function versions(): array;
 
-    public function devVersion(): string;
-
     public function rollbackName(string $version): string;
 
 }
