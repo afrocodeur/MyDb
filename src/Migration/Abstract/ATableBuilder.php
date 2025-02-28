@@ -24,20 +24,53 @@ abstract class ATableBuilder implements ITableBuilder {
         $this->columns[] = $column;
         return $column;
     }
+    public function smallId(string $name): IColumnBuilder {
+        $column = $this->getColumn($name)->type(EType::SMALL_INT)->unsigned()->primary()->autoIncrement();
+        $this->columns[] = $column;
+        return $column;
+    }
+    public function tinyId(string $name): IColumnBuilder {
+        $column = $this->getColumn($name)->type(EType::TINY_INT)->unsigned()->primary()->autoIncrement();
+        $this->columns[] = $column;
+        return $column;
+    }
     public function int(string $name, int $length = 11): IColumnBuilder {
         $column = $this->getColumn($name)->type(EType::INT)->length($length);
         $this->columns[] = $column;
         return $column;
     }
+    public function tinyInt(string $name): IColumnBuilder {
+        $column = $this->getColumn($name)->type(EType::TINYINT);
+        $this->columns[] = $column;
+        return $column;
+    }
 
-    public function float(string $name, int $length, int $precision): IColumnBuilder {
+    public function smallInt(string $name): IColumnBuilder {
+        $column = $this->getColumn($name)->type(EType::SMALLINT);
+        $this->columns[] = $column;
+        return $column;
+    }
+
+    public function bigInt(string $name): IColumnBuilder {
+        $column = $this->getColumn($name)->type(EType::BIGINT);
+        $this->columns[] = $column;
+        return $column;
+    }
+
+    public function bool(string $name): IColumnBuilder {
+        $column = $this->getColumn($name)->type(EType::BOOL);
+        $this->columns[] = $column;
+        return $column;
+    }
+
+    public function float(string $name, int $precision = 53): IColumnBuilder {
         $column = $this->getColumn($name)->type(EType::FLOAT)->precision($precision);
         $this->columns[] = $column;
         return $column;
     }
 
-    public function double(string $name, int $length, int $precision): IColumnBuilder {
-        $column = $this->getColumn($name)->type(EType::DOUBLE)->precision($precision);
+    public function double(string $name): IColumnBuilder {
+        $column = $this->getColumn($name)->type(EType::DOUBLE);
         $this->columns[] = $column;
         return $column;
     }

@@ -5,7 +5,13 @@ namespace MyDB\Migration;
 enum EType: string {
 
     case INT = 'INT';
+    case TINYINT = 'TINYINT';
+    case SMALLINT = 'SMALLINT';
+    case BIGINT = 'BIGINT';
+    case BOOLEAN = 'BOOLEAN';
+    case JSON = 'JSON';
     case FLOAT = 'FLOAT';
+    case POINT = 'POINT';
     case DOUBLE = 'DOUBLE';
     case STRING = 'STRING';
     case TEXT = 'TEXT';
