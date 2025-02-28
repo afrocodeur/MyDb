@@ -25,12 +25,12 @@ abstract class ATableBuilder implements ITableBuilder {
         return $column;
     }
     public function smallId(string $name): IColumnBuilder {
-        $column = $this->getColumn($name)->type(EType::SMALL_INT)->unsigned()->primary()->autoIncrement();
+        $column = $this->getColumn($name)->type(EType::SMALLINT)->unsigned()->primary()->autoIncrement();
         $this->columns[] = $column;
         return $column;
     }
     public function tinyId(string $name): IColumnBuilder {
-        $column = $this->getColumn($name)->type(EType::TINY_INT)->unsigned()->primary()->autoIncrement();
+        $column = $this->getColumn($name)->type(EType::TINYINT)->unsigned()->primary()->autoIncrement();
         $this->columns[] = $column;
         return $column;
     }
