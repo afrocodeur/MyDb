@@ -56,7 +56,7 @@ final class MyDB {
         return self::instance()->queryBuilder()->from($table);
     }
 
-    public static function instance(string $db = null): self {
+    public static function instance(?string $db = null): self {
         if($db && $db !== self::$default) {
             return new self($db);
         }
