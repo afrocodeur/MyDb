@@ -20,7 +20,6 @@ class QueryBuilder extends AQueryBuilder {
             }
             if($item instanceof IQueryBuilder) {
                 $clauses[] = '('.$item->getSelectQuery().')';
-                print '('.$item->getSelectQuery().')'.PHP_EOL;
                 $this->addParams($item->getParams());
                 continue;
             }
