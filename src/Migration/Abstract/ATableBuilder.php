@@ -122,6 +122,10 @@ abstract class ATableBuilder implements ITableBuilder {
         $this->timestamp('updated_at')->nullable()->useCurrent()->useCurrentOnUpdate();
     }
 
+    public function softDelete(): void {
+        $this->timestamp('deleted_at')->nullable();
+    }
+
     public function dropColumn(string $name): void {
         $column = $this->getColumn($name);
         $this->columns[] = $column;
