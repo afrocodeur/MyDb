@@ -11,8 +11,8 @@ interface IQueryBuilder {
     public function from(string $table): self;
     /** @param array<string> $columns */
     public function select(array $columns): self;
-    public function where(): self;
-    public function orWhere(): self;
+    public function where(mixed ...$args): self;
+    public function orWhere(mixed ...$args): self;
     public function whereNull(string $column): self;
     public function orWhereNull(string $column): self;
     public function whereNotNull(string $column): self;

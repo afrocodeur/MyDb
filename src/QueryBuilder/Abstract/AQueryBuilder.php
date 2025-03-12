@@ -96,12 +96,12 @@ abstract class AQueryBuilder implements IQueryBuilder {
         return $this;
     }
 
-    public function where(): self {
-        $this->addWhereClause(self::$LOGICAL_OPERATOR_AND, func_get_args());
+    public function where(mixed ...$args): self {
+        $this->addWhereClause(self::$LOGICAL_OPERATOR_AND, $args);
         return $this;
     }
-    public function orWhere(): self {
-        $this->addWhereClause(self::$LOGICAL_OPERATOR_OR, func_get_args());
+    public function orWhere(mixed ...$args): self {
+        $this->addWhereClause(self::$LOGICAL_OPERATOR_OR, $args);
         return $this;
     }
     public function whereNull(string $column): self {
