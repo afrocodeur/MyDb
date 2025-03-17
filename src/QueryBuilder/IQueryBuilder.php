@@ -41,15 +41,15 @@ interface IQueryBuilder {
     public function delete(): bool;
 
     /**
-     * @param array<string, int|string|float|bool> $data
+     * @param array<string, int|string|float|bool|null> $data
      */
     public function insert(array $data): bool;
     /**
-     * @param array<string, int|string|float|bool>[] $data
+     * @param array<string, int|string|float|bool|null>[] $data
      */
     public function insertMultiple(array $data): bool;
     /**
-     * @param array<string, int|string|float|bool> $data
+     * @param array<string, int|string|float|bool|null> $data
      */
     public function update(array $data): bool;
 }

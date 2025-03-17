@@ -5,10 +5,6 @@ namespace MyDB\QueryBuilder;
 use Closure;
 use MyDB\MyDB;
 
-/**
- * @template T
- *
- */
 abstract class ARepository {
 
     protected string $table;

@@ -84,6 +84,7 @@ final class MyDB {
     }
     public static function setDefault(string $name): void {
         self::$default = $name;
+        self::$instance = null;
     }
 
     public function get(string $query, array $params = [], ?Closure $wrapper = null): array {
