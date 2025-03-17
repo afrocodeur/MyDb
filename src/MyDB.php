@@ -83,8 +83,10 @@ final class MyDB {
         self::$configs = array_merge(self::$configs, $configs);
     }
     public static function setDefault(string $name): void {
+        if(self::$default !== $name) {
+            self::$instance = null;
+        }
         self::$default = $name;
-        self::$instance = null;
     }
 
     public function get(string $query, array $params = [], ?Closure $wrapper = null): array {
