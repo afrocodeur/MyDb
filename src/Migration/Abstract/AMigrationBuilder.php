@@ -53,7 +53,7 @@ abstract class AMigrationBuilder implements IMigrationBuilder {
     }
 
     public function dropTable(string $name, bool $ifExists = false): void {
-        $this->runSqlCode($this->getTable($name)->getDropSql());
+        $this->runSqlCode($this->getTable($name)->getDropSql($ifExists));
     }
 
 }

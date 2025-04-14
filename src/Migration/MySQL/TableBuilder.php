@@ -47,6 +47,6 @@ class TableBuilder extends ATableBuilder {
         return implode(";\n", $sqlCodes).';';
     }
     public function getDropSql(bool $ifExists = false): string {
-        return 'DROP TABLE '.$this->name;
+        return 'DROP TABLE '.($ifExists ? 'IF EXISTS ' : '').$this->name;
     }
 }
