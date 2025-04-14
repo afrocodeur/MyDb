@@ -52,4 +52,5 @@ interface IQueryBuilder {
      * @param array<string, int|string|float|bool|null> $data
      */
     public function update(array $data): bool;
+    public function flush(): void;
 }

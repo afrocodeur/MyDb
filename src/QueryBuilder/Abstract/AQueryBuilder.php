@@ -31,6 +31,17 @@ abstract class AQueryBuilder implements IQueryBuilder {
     abstract protected function getWhereClause(): ?string;
     abstract protected function getGroupByClause(): ?string;
     abstract protected function getOrderByClause(): ?string;
+
+    public function flush(): void {
+        $this->columns = ['*'];
+        $this->params = [];
+        $this->where = [];
+        $this->having = null;
+        $this->groupBy = [];
+        $this->orderBy = [];
+        $this->limitStart = 0;
+        $this->limitTake = 0;
+    }
     public function useDb(MyDB $db): void {
         $this->db = $db;
     }
