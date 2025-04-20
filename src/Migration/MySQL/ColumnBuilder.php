@@ -49,6 +49,9 @@ final class ColumnBuilder extends AColumnBuilder {
         if($this->nullable) {
             $columnDefinition[] = 'NULL';
         }
+        else {
+            $columnDefinition[] = 'NOT NULL';
+        }
         if($this->primary) {
             $columnDefinition[] = 'PRIMARY KEY';
         }
