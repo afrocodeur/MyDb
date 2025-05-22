@@ -132,6 +132,14 @@ abstract class ATableBuilder implements ITableBuilder {
         $column->drop();
     }
 
+    public function primary(string ...$columns): IColumnBuilder {
+        return $this->getColumn('')->columns(...$columns)->primary();
+    }
+
+    public function unique(string ...$columns): IColumnBuilder {
+        return $this->getColumn('')->columns(...$columns)->unique();
+    }
+
     public function rename(string $newName): void {
         $this->newName = $newName;
     }

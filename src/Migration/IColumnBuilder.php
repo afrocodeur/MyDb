@@ -5,6 +5,7 @@ namespace MyDB\Migration;
 interface IColumnBuilder {
 
     public function name(string $name): IColumnBuilder;
+    public function columns(string ...$names): IColumnBuilder;
     public function type(EType $type): IColumnBuilder;
     public function length(int $length): IColumnBuilder;
     public function precision(int $precision): IColumnBuilder;

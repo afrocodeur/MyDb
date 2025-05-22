@@ -42,6 +42,10 @@ abstract class AColumnBuilder implements IColumnBuilder {
         $this->name = $name;
         return $this;
     }
+    public function columns(string ...$columns): self {
+        $this->names = $columns;
+        return $this;
+    }
     public function type(EType $type): self {
         $this->type = $type;
         return $this;

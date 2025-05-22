@@ -26,6 +26,9 @@ interface ITableBuilder {
     public function softDelete(): void;
     public function dropColumn(string $name): void;
 
+    public function primary(string ...$columns): IColumnBuilder;
+    public function unique(string ...$columns): IColumnBuilder;
+
 
     public function rename(string $newName): void;
     public function removeConstraint(string $name): void;
