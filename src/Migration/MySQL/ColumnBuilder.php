@@ -13,6 +13,9 @@ final class ColumnBuilder extends AColumnBuilder {
     public function __construct(string $name) {
         $this->name = "`$name`";
     }
+    public function constrained(?string $name = null): self {
+        return parent::constrained(is_string($name) ? "`$name`" : null);
+    }
 
     public function after(string $columnName): void {
         parent::after("`$columnName`");
