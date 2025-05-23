@@ -22,7 +22,10 @@ class TableBuilder extends ATableBuilder {
         $definitionSqlCodes = [];
         $constraintCodes = [];
         foreach ($this->columns as $column) {
-            $definitionSqlCodes[] = $column->createSql();
+            $sql = $column->createSql();
+            if(!empty($sql)) {
+                $definitionSqlCodes[] = $sql;
+            }
             if($column->hasConstraintCode()) {
                 $constraintCodes[] = $column->constraintCode();;
             }

@@ -133,11 +133,15 @@ abstract class ATableBuilder implements ITableBuilder {
     }
 
     public function primary(string ...$columns): IColumnBuilder {
-        return $this->getColumn('')->columns(...$columns)->primary();
+        $column = $this->getColumn('')->columns(...$columns)->primary();
+        $this->columns[] = $column;
+        return $column;
     }
 
     public function unique(string ...$columns): IColumnBuilder {
-        return $this->getColumn('')->columns(...$columns)->unique();
+        $column = $this->getColumn('')->columns(...$columns)->unique();
+        $this->columns[] = $column;
+        return $column;
     }
 
     public function rename(string $newName): void {

@@ -103,7 +103,8 @@ final class ColumnBuilder extends AColumnBuilder {
             if($this->unique) {
                 $sqlCode .= ' UNIQUE ('.implode(', ', $this->names).')';
             }
-            return $sqlCode;
+            $this->constraintCode = $sqlCode;
+            return '';
         }
         $sqlCode = "{$this->name} {$this->getDataDescription()}";
         if($this->foreign) {
