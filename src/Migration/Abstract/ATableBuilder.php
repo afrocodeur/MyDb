@@ -4,6 +4,7 @@ namespace MyDB\Migration\Abstract;
 use MyDB\Migration\EType;
 use MyDB\Migration\IColumnBuilder;
 use MyDB\Migration\ITableBuilder;
+use MyDB\Migration\Row;
 
 abstract class ATableBuilder implements ITableBuilder {
 
@@ -16,8 +17,9 @@ abstract class ATableBuilder implements ITableBuilder {
 
     abstract public function getColumn(string $name): IColumnBuilder;
 
-    public function uuid(string $name): void {
-
+    public function uuid(string $name, int $length = 36): void {
+        $column = $this->getColumn($name)->type(EType::STRING)->length($length)->unique()->default(Row::wrap('uuid()'));
+        $this->columns[] = $column;
     }
     public function id(string $name, int $length = 11): IColumnBuilder {
         $column = $this->getColumn($name)->type(EType::INT)->length($length)->unsigned()->primary()->autoIncrement();
