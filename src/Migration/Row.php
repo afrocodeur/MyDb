@@ -7,7 +7,7 @@ final readonly class Row {
     public function __construct(private string $code) {}
 
     public function value(): string {
-        return $this->code;
+        return '('.$this->code.')';
     }
 
     public static function wrap(string $code): Row {
