@@ -115,7 +115,7 @@ abstract class AColumnBuilder implements IColumnBuilder {
         return $this;
     }
 
-    public function references(string $table, string $column): self {
+    public function references(string $table, string $column = 'id'): self {
         $this->foreignTable = $table;
         $this->foreignColumn = $column;
         return $this;

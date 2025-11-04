@@ -70,6 +70,16 @@ abstract class ATableBuilder implements ITableBuilder {
         $this->columns[] = $column;
         return $column;
     }
+    public function decimal(string $name, int $precision = 8): IColumnBuilder {
+        $column = $this->getColumn($name)->type(EType::DECIMAL)->length(10)->precision($precision);
+        $this->columns[] = $column;
+        return $column;
+    }
+    public function point(string $name): IColumnBuilder {
+        $column = $this->getColumn($name)->type(EType::POINT);
+        $this->columns[] = $column;
+        return $column;
+    }
 
     public function double(string $name): IColumnBuilder {
         $column = $this->getColumn($name)->type(EType::DOUBLE);

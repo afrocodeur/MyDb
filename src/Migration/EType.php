@@ -13,6 +13,7 @@ enum EType: string {
     case FLOAT = 'FLOAT';
     case POINT = 'POINT';
     case DOUBLE = 'DOUBLE';
+    case DECIMAL = 'DECIMAL';
     case STRING = 'STRING';
     case TEXT = 'TEXT';
     case BOOL = 'BOOL';

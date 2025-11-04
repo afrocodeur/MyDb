@@ -20,7 +20,7 @@ interface IColumnBuilder {
     public function useCurrentOnUpdate(): IColumnBuilder;
     public function comment(string $comment): IColumnBuilder;
     public function foreign(string $constraintName): IColumnBuilder;
-    public function references(string $table, string $column): IColumnBuilder;
+    public function references(string $table, string $column = 'id'): IColumnBuilder;
     public function constrained(?string $name = null): IColumnBuilder;
     public function onUpdate(string $onUpdate): IColumnBuilder;
     public function onDelete(string $onDelete): IColumnBuilder;

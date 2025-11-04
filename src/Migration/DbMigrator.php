@@ -104,7 +104,7 @@ class DbMigrator {
         $versionsToRun = array_slice($versions, $startFromIndex);
         $this->nbMigrationsExecuted = 0;
         foreach ($versionsToRun as $versionToRun) {
-            $this->logger?->info("Running version : $versionToRun ");
+            $this->logger?->info(($shouldRollback ? 'Rollback ' : '')."Running version : $versionToRun ");
             $nbMigrations = $this->runVersionMigrations($versionToRun, $shouldRollback);
             $this->nbMigrationsExecuted += $nbMigrations;
             $this->logger?->success("$nbMigrations migrations executed");

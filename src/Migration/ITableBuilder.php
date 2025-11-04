@@ -5,7 +5,7 @@ namespace MyDB\Migration;
 interface ITableBuilder {
 
     public function uuid(string $name): void;
-    public function id(string $name, int $length = 11): IColumnBuilder;
+    public function id(string $name = 'id', int $length = 11): IColumnBuilder;
     public function tinyId(string $name): IColumnBuilder;
     public function smallId(string $name): IColumnBuilder;
     public function int(string $name, int $length = 11): IColumnBuilder;
@@ -14,6 +14,8 @@ interface ITableBuilder {
     public function bigInt(string $name): IColumnBuilder;
     public function bool(string $name): IColumnBuilder;
     public function float(string $name, int $precision = 53): IColumnBuilder;
+    public function decimal(string $name, int $precision = 8): IColumnBuilder;
+    public function point(string $name): IColumnBuilder;
     public function double(string $name): IColumnBuilder;
     public function string(string $name, int $length = 255): IColumnBuilder;
     public function text(string $name): IColumnBuilder;
