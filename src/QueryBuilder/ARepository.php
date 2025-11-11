@@ -30,6 +30,25 @@ abstract class ARepository {
         return $this;
     }
 
+    /**
+     * @throws Exception
+     */
+    public function with(string|array ...$relations): self {
+        $processedRelations = [];
+        foreach ($relations as $item) {
+            if(is_string($item)) {
+                $processedRelations[$item] = true;
+                continue;
+            }
+            if(is_array($item)) {
+                foreach ($item as $relationName => $callback) {
+                    $processedRelations[$relationName] = $callback;
+                }
+            }
+        }
+        return $this->setRelations($processedRelations);
+    }
+
     protected function table(): IQueryBuilder {
         return MyDB::table($this->table)->relations($this->processedRelations);
     }
@@ -49,11 +68,6 @@ abstract class ARepository {
     }
     public function last(): ?array {
         return $this->table()->orderBy($this->orderKey ?? $this->primaryKey, 'DESC')->first();
-    }
-
-    public function with(string $repository, ?Closure $condition): self {
-
-        return $this;
     }
 
 }
