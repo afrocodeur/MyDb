@@ -4,6 +4,7 @@ namespace MyDB\QueryBuilder;
 
 use Closure;
 use MyDB\MyDB;
+use Exception;
 
 abstract class ARepository {
 
@@ -11,11 +12,24 @@ abstract class ARepository {
     protected string $primaryKey = 'id';
     protected string $orderKey = 'id';
 
-    /** @var array<string> */
-    protected array $with = [];
+    protected array $processedRelations = [];
+
+    protected function setRelations(array $requestedRelations): self {
+        $this->processedRelations = [];
+        foreach($requestedRelations as $relationNam => $relation) {
+            if(!isset($this->relations[$relationNam])) {
+                throw new Exception("Relation $relationNam not found");
+            }
+            $this->processedRelations[$relationNam] = $this->relations[$relationNam];
+            if(is_callable($relation)) {
+                $this->processedRelations[$relationNam]['callback'] = $relation;
+            }
+        }
+        return $this;
+    }
 
     protected function table(): IQueryBuilder {
-        return MyDB::table($this->table);
+        return MyDB::table($this->table)->relations($this->processedRelations);
     }
     public function getPrimaryKey(): string {
         return $this->primaryKey;

@@ -26,11 +26,23 @@ abstract class AQueryBuilder implements IQueryBuilder {
     protected array $orderBy = [];
     protected int $limitStart = 0;
     protected int $limitTake = 0;
+    protected array $relations = [];
 
 
     abstract protected function getWhereClause(): ?string;
     abstract protected function getGroupByClause(): ?string;
     abstract protected function getOrderByClause(): ?string;
+
+    public function wrapName(string|array $column): array|string {
+        if(is_array($column)) {
+            return array_map(fn($item) => $this->wrapName($item), $column);
+        }
+        $column = trim($column);
+        if($column[0] === '`') {
+            return $column;
+        }
+        return "`$column`";
+    }
 
     public function flush(): void {
         $this->columns = ['*'];
@@ -41,6 +53,10 @@ abstract class AQueryBuilder implements IQueryBuilder {
         $this->orderBy = [];
         $this->limitStart = 0;
         $this->limitTake = 0;
+    }
+    public function relations(array $relations = []): self {
+        $this->relations = $relations;
+        return $this;
     }
     public function useDb(MyDB $db): void {
         $this->db = $db;
@@ -84,6 +100,7 @@ abstract class AQueryBuilder implements IQueryBuilder {
             $operator = $args[1];
             $value = $args[2];
         }
+        $column = $this->wrapName($column);
 
         if(is_callable($value)) {
             $builder = new static();
@@ -94,7 +111,7 @@ abstract class AQueryBuilder implements IQueryBuilder {
     }
 
     public function from(string $table): self {
-        $this->table = $table;
+        $this->table = $this->wrapName($table);
         return $this;
     }
 
@@ -103,7 +120,7 @@ abstract class AQueryBuilder implements IQueryBuilder {
      * @return IQueryBuilder
      */
     public function select(array $columns): self {
-        $this->columns = $columns;
+        $this->columns = $this->wrapName($columns);;
         return $this;
     }
 
@@ -156,10 +173,12 @@ abstract class AQueryBuilder implements IQueryBuilder {
         return $this;
     }
     public function orderBy(string $column, string $direction): self {
+        $column = $this->wrapName($column);
         $this->orderBy[$column] = $direction;
         return $this;
     }
     public function groupBy(string $colum, string $direction = 'ASC'): self {
+        $colum = $this->wrapName($colum);
         $this->groupBy[$colum] = $direction;
         return $this;
     }

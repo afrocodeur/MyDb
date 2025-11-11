@@ -98,7 +98,39 @@ class QueryBuilder extends AQueryBuilder {
     }
 
     public function get(): array {
-        return $this->db->get($this->getSelectQuery(), $this->getParams());
+        $rowData = $this->db->get($this->getSelectQuery(), $this->getParams());
+
+        foreach ($this->relations as $key => $relation) {
+            $queryBuilder = new static();
+            $localValues = array_column($rowData, $relation['localKey']);
+            $relationQuery = $queryBuilder->from($relation['table'])->whereIn($relation['foreignKey'], $localValues);
+            if(isset($relation['callback']) && is_callable($relation['callback'])) {
+                $relationQuery = $relation['callback']($relationQuery);
+            }
+            $elements = $relationQuery->get($relation['relations'] ?? []);
+
+            $elementsByForeignKey = [];
+
+            foreach ($elements as $element) {
+                $foreignKeyValue = $element[$relation['foreignKey']];
+                if (!isset($elementsByForeignKey[$foreignKeyValue])) {
+                    $elementsByForeignKey[$foreignKeyValue] = [];
+                }
+                $elementsByForeignKey[$foreignKeyValue][] = $element;
+            }
+
+            foreach ($rowData as &$row) {
+                $localKeyValue = $row[$relation['localKey']];
+
+                if(isset($relation['type']) && strtolower($relation['type']) === 'hasone') {
+                    $row[$key] = $elementsByForeignKey[$localKeyValue][0] ?? null;
+                } else {
+                    $row[$key] = $elementsByForeignKey[$localKeyValue] ?? [];
+                }
+            }
+        }
+
+        return $rowData;
     }
     public function delete(): bool {
         return $this->db->execute($this->getDeleteQuery(), $this->getParams());

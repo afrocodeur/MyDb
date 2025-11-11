@@ -40,6 +40,8 @@ interface IQueryBuilder {
     public function first(): ?array;
     public function delete(): bool;
 
+    public function relations(array $relations): self;
+
     /**
      * @param array<string, int|string|float|bool|null> $data
      */

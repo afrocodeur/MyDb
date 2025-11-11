@@ -34,7 +34,7 @@ final class ColumnBuilder extends AColumnBuilder {
         if($this->length && $this->precision) {
             $columnDefinition[] = $type.'('.$this->length.', '.$this->precision.')';
         }
-        if($this->length) {
+        else if($this->length) {
             $columnDefinition[] = $type.'('.$this->length.')';
         }
         else if($this->type === EType::ENUM) {
