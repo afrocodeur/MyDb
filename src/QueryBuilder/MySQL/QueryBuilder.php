@@ -3,6 +3,7 @@
 namespace MyDB\QueryBuilder\MySQL;
 
 use Closure;
+use MyDB\MyDB;
 use MyDB\QueryBuilder\Abstract\AQueryBuilder;
 use MyDB\QueryBuilder\IQueryBuilder;
 
@@ -101,9 +102,9 @@ class QueryBuilder extends AQueryBuilder {
         $rowData = $this->db->get($this->getSelectQuery(), $this->getParams());
 
         foreach ($this->relations as $key => $relation) {
-            $queryBuilder = new static();
+            $queryBuilder = MyDB::table($relation['table']);
             $localValues = array_column($rowData, $relation['localKey']);
-            $relationQuery = $queryBuilder->from($relation['table'])->whereIn($relation['foreignKey'], $localValues);
+            $relationQuery = $queryBuilder->whereIn($relation['foreignKey'], $localValues);
             if(isset($relation['callback']) && is_callable($relation['callback'])) {
                 $relationQuery = $relation['callback']($relationQuery);
             }

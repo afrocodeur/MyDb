@@ -53,6 +53,7 @@ abstract class AQueryBuilder implements IQueryBuilder {
         $this->orderBy = [];
         $this->limitStart = 0;
         $this->limitTake = 0;
+        $this->relations = [];
     }
     public function relations(array $relations = []): self {
         $this->relations = $relations;

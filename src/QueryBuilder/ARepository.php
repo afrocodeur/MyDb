@@ -12,6 +12,8 @@ abstract class ARepository {
     protected string $primaryKey = 'id';
     protected string $orderKey = 'id';
 
+    protected array $relations = [];
+
     protected array $processedRelations = [];
 
     protected function setRelations(array $requestedRelations): self {
