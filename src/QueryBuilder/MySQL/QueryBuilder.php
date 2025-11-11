@@ -103,7 +103,8 @@ class QueryBuilder extends AQueryBuilder {
 
         foreach ($this->relations as $key => $relation) {
             $queryBuilder = MyDB::table($relation['table']);
-            $localValues = array_column($rowData, $relation['localKey']);
+            $localKey = $relation['localKey'] ?? 'id';
+            $localValues = array_column($rowData, $localKey);
             $relationQuery = $queryBuilder->whereIn($relation['foreignKey'], $localValues);
             if(isset($relation['callback']) && is_callable($relation['callback'])) {
                 $relationQuery = $relation['callback']($relationQuery);
@@ -121,7 +122,7 @@ class QueryBuilder extends AQueryBuilder {
             }
 
             foreach ($rowData as &$row) {
-                $localKeyValue = $row[$relation['localKey']];
+                $localKeyValue = $row[$localKey];
 
                 if(isset($relation['type']) && strtolower($relation['type']) === 'hasone') {
                     $row[$key] = $elementsByForeignKey[$localKeyValue][0] ?? null;
