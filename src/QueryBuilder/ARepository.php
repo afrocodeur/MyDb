@@ -33,18 +33,20 @@ abstract class ARepository {
     /**
      * @throws Exception
      */
-    public function with(string|array ...$relations): self {
+    public function with(array $relations): self {
         $processedRelations = [];
-        foreach ($relations as $item) {
-            if(is_string($item)) {
-                $processedRelations[$item] = true;
-                continue;
-            }
+        foreach ($relations as $key => $item) {
             if(is_array($item)) {
                 foreach ($item as $relationName => $callback) {
                     $processedRelations[$relationName] = $callback;
                 }
+                continue;
             }
+            if(is_string($item)) {
+                $processedRelations[$item] = true;
+                continue;
+            }
+            $processedRelations[$key] = $item;
         }
         return $this->setRelations($processedRelations);
     }
