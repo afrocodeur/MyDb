@@ -5,6 +5,7 @@ namespace MyDB\QueryBuilder\MySQL;
 use Closure;
 use MyDB\MyDB;
 use MyDB\QueryBuilder\Abstract\AQueryBuilder;
+use MyDB\QueryBuilder\ARepository;
 use MyDB\QueryBuilder\IQueryBuilder;
 
 class QueryBuilder extends AQueryBuilder {
@@ -98,18 +99,27 @@ class QueryBuilder extends AQueryBuilder {
         return $this->addConditionClauses('DELETE FROM '.$this->table);
     }
 
+    /**
+     * @throws \Exception
+     */
     public function get(): array {
         $rowData = $this->db->get($this->getSelectQuery(), $this->getParams());
 
         foreach ($this->relations as $key => $relation) {
-            $queryBuilder = MyDB::table($relation['table']);
+            /** @var ARepository $repositoryInstance */
+            $repositoryInstance = new $relation['repository'];
+
+            $queryBuilder = $repositoryInstance->with($relation['with'] ?? [])->table();
+
             $localKey = $relation['localKey'] ?? 'id';
             $localValues = array_column($rowData, $localKey);
             $relationQuery = $queryBuilder->whereIn($relation['foreignKey'], $localValues);
+
             if(isset($relation['callback']) && is_callable($relation['callback'])) {
                 $relationQuery = $relation['callback']($relationQuery);
             }
-            $elements = $relationQuery->get($relation['relations'] ?? []);
+
+            $elements = $relationQuery->get();
 
             $elementsByForeignKey = [];
 

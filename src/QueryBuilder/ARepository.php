@@ -25,6 +25,10 @@ abstract class ARepository {
             $this->processedRelations[$relationNam] = $this->relations[$relationNam];
             if(is_callable($relation)) {
                 $this->processedRelations[$relationNam]['callback'] = $relation;
+                continue;
+            }
+            if(is_array($relation)) {
+                $this->processedRelations[$relationNam]['with'] = $relation;
             }
         }
         return $this;
@@ -36,12 +40,6 @@ abstract class ARepository {
     public function with(array $relations): self {
         $processedRelations = [];
         foreach ($relations as $key => $item) {
-            if(is_array($item)) {
-                foreach ($item as $relationName => $callback) {
-                    $processedRelations[$relationName] = $callback;
-                }
-                continue;
-            }
             if(is_string($item)) {
                 $processedRelations[$item] = true;
                 continue;
@@ -51,7 +49,7 @@ abstract class ARepository {
         return $this->setRelations($processedRelations);
     }
 
-    protected function table(): IQueryBuilder {
+    public function table(): IQueryBuilder {
         return MyDB::table($this->table)->relations($this->processedRelations);
     }
     public function getPrimaryKey(): string {
