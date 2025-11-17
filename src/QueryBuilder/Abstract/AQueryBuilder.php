@@ -39,7 +39,7 @@ abstract class AQueryBuilder implements IQueryBuilder {
             return array_map(fn($item) => $this->wrapName($item), $column);
         }
         if($column instanceof Raw) {
-            return $column->value();
+            return $column->value(parentheses: false);
         }
         $column = trim($column);
         if($column[0] === '`') {

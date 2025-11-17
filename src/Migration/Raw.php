@@ -6,8 +6,11 @@ final readonly class Raw {
 
     public function __construct(private string $code) {}
 
-    public function value(): string {
-        return '('.$this->code.')';
+    public function value(bool $parentheses = true): string {
+        if($parentheses === true) {
+            return '('.$this->code.')';
+        }
+        return $this->code;
     }
 
     public static function wrap(string $code): Raw {
