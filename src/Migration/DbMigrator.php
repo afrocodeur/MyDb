@@ -149,6 +149,10 @@ class DbMigrator {
      * @throws DriverNotFoundException
      */
     private function runVersionMigration(string $migrationClassName, string $methodName): void {
+        if(!method_exists($migrationClassName, $methodName)) {
+            $this->logger?->warning("SKIP: $methodName not found for $migrationClassName.");
+            return;
+        }
         $this->logger?->note("Run $migrationClassName::$methodName");
 
         $migration = new $migrationClassName();
