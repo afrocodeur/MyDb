@@ -5,7 +5,7 @@ namespace MyDB\Migration\MySQL;
 use MyDB\Migration\Abstract\AColumnBuilder;
 use MyDB\Migration\EType;
 use MyDB\Migration\IColumnBuilder;
-use MyDB\Migration\Row;
+use MyDB\Migration\Raw;
 
 final class ColumnBuilder extends AColumnBuilder {
 
@@ -67,7 +67,7 @@ final class ColumnBuilder extends AColumnBuilder {
                 $default = '"'.$this->default.'"';
             } else if(is_numeric($this->default)) {
                 $default = $this->default;
-            } else if($this->default instanceof Row) {
+            } else if($this->default instanceof Raw) {
                 $default = $this->default->value();
             }
             $columnDefinition[] = 'DEFAULT '.$default;

@@ -4,7 +4,7 @@ namespace MyDB\Migration\Abstract;
 
 use MyDB\Migration\EType;
 use MyDB\Migration\IColumnBuilder;
-use MyDB\Migration\Row;
+use MyDB\Migration\Raw;
 
 abstract class AColumnBuilder implements IColumnBuilder {
 
@@ -22,7 +22,7 @@ abstract class AColumnBuilder implements IColumnBuilder {
     protected bool $useCurrentOnUpdate = false;
     protected bool $autoIncrement = false;
     protected int $from = 0;
-    protected null|int|float|string|Row $default = null;
+    protected null|int|float|string|Raw $default = null;
     protected bool $foreign = false;
     protected ?string $foreignTable = null;
     protected ?string $foreignColumn = null;
@@ -90,7 +90,7 @@ abstract class AColumnBuilder implements IColumnBuilder {
         return $this;
     }
 
-    public function default(null|int|float|string|Row $default): self {
+    public function default(null|int|float|string|Raw $default): self {
         $this->default = $default;
         return $this;
     }

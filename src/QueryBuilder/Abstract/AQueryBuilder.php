@@ -2,6 +2,7 @@
 
 namespace MyDB\QueryBuilder\Abstract;
 
+use MyDB\Migration\Raw;
 use MyDB\MyDB;
 use MyDB\QueryBuilder\IQueryBuilder;
 use Closure;
@@ -33,9 +34,12 @@ abstract class AQueryBuilder implements IQueryBuilder {
     abstract protected function getGroupByClause(): ?string;
     abstract protected function getOrderByClause(): ?string;
 
-    public function wrapName(string|array $column): array|string {
+    public function wrapName(string|array|Raw $column): array|string {
         if(is_array($column)) {
             return array_map(fn($item) => $this->wrapName($item), $column);
+        }
+        if($column instanceof Raw) {
+            return $column->value();
         }
         $column = trim($column);
         if($column[0] === '`') {
@@ -86,6 +90,9 @@ abstract class AQueryBuilder implements IQueryBuilder {
                 $builder = new static();
                 call_user_func_array($data, [$builder]);
                 $this->where[] = $builder;
+            }
+            if($data instanceof Raw) {
+                $this->where[] = $data->value();
             }
             return;
         }

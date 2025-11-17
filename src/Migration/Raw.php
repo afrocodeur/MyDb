@@ -2,7 +2,7 @@
 
 namespace MyDB\Migration;
 
-final readonly class Row {
+final readonly class Raw {
 
     public function __construct(private string $code) {}
 
@@ -10,7 +10,7 @@ final readonly class Row {
         return '('.$this->code.')';
     }
 
-    public static function wrap(string $code): Row {
+    public static function wrap(string $code): Raw {
         return new self($code);
     }
 

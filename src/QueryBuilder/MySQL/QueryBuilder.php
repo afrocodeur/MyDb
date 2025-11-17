@@ -3,6 +3,7 @@
 namespace MyDB\QueryBuilder\MySQL;
 
 use Closure;
+use MyDB\Migration\Raw;
 use MyDB\MyDB;
 use MyDB\QueryBuilder\Abstract\AQueryBuilder;
 use MyDB\QueryBuilder\ARepository;
@@ -188,8 +189,7 @@ class QueryBuilder extends AQueryBuilder {
     }
 
     public function count(): int {
-        $this->select(['COUNT(*) as nb_elements']);
-        $results = $this->get();
+        $results = $this->select([Raw::wrap('COUNT(*) as nb_elements')])->get();
         return $results[0]['nb_elements'];
     }
 
