@@ -14,11 +14,12 @@ interface ITableBuilder {
     public function bigInt(string $name): IColumnBuilder;
     public function bool(string $name): IColumnBuilder;
     public function float(string $name, int $precision = 53): IColumnBuilder;
-    public function decimal(string $name, int $precision = 8): IColumnBuilder;
+    public function decimal(string $name, int $precision = 2): IColumnBuilder;
     public function point(string $name): IColumnBuilder;
     public function double(string $name): IColumnBuilder;
     public function string(string $name, int $length = 255): IColumnBuilder;
     public function text(string $name): IColumnBuilder;
+    public function json(string $name): IColumnBuilder;
     public function enum(string $name, array $values = []): IColumnBuilder;
     public function dateTime(string $name): IColumnBuilder;
     public function timestamp(string $name): IColumnBuilder;

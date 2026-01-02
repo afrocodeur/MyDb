@@ -28,11 +28,20 @@ abstract class AQueryBuilder implements IQueryBuilder {
     protected int $limitStart = 0;
     protected int $limitTake = 0;
     protected array $relations = [];
+    protected array $castRules = [];
+    protected array $normalizeRules = [];
 
 
     abstract protected function getWhereClause(): ?string;
     abstract protected function getGroupByClause(): ?string;
     abstract protected function getOrderByClause(): ?string;
+
+    public function runNormalize(array $params): array {
+        return DataNormalizer::normalize($params, $this->normalizeRules);
+    }
+    public function runCasts(array $rawData): array {
+        return DataCaster::cast($rawData, $this->castRules);
+    }
 
     public function wrapName(string|array|Raw $column): array|string {
         if(is_array($column)) {
@@ -57,12 +66,24 @@ abstract class AQueryBuilder implements IQueryBuilder {
         $this->orderBy = [];
         $this->limitStart = 0;
         $this->limitTake = 0;
+        $this->castRules = [];
+        $this->normalizeRules = [];
         $this->relations = [];
     }
     public function relations(array $relations = []): self {
         $this->relations = $relations;
         return $this;
     }
+
+    public function casts(array $rules): self {
+        $this->castRules = $rules;
+        return $this;
+    }
+    public function normalize(array $rules): self {
+        $this->normalizeRules = $rules;
+        return $this;
+    }
+
     public function useDb(MyDB $db): void {
         $this->db = $db;
     }
@@ -75,6 +96,9 @@ abstract class AQueryBuilder implements IQueryBuilder {
     }
     public function getSqlQuery(): string {
         return $this->sqlQuery;
+    }
+    protected function setParams(array $params): void {
+        $this->params = $params;
     }
     protected function addParams(array $params): void {
         $this->params = array_merge($this->params, $params);

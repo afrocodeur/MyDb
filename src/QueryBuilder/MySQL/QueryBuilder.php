@@ -47,7 +47,7 @@ class QueryBuilder extends AQueryBuilder {
     }
     public function getGroupByClause(): ?string {
         if(empty($this->groupBy)) {
-           return '';
+            return '';
         }
         return implode(',', $this->groupBy);
     }
@@ -105,6 +105,9 @@ class QueryBuilder extends AQueryBuilder {
      */
     public function get(): array {
         $rowData = $this->db->get($this->getSelectQuery(), $this->getParams());
+        if(empty($rowData)) {
+            return [];
+        }
 
         foreach ($this->relations as $key => $relation) {
             /** @var ARepository $repositoryInstance */
@@ -143,7 +146,7 @@ class QueryBuilder extends AQueryBuilder {
             }
         }
 
-        return $rowData;
+        return array_map(fn($row) => $this->runCasts($row), $rowData);
     }
     public function delete(): bool {
         return $this->db->execute($this->getDeleteQuery(), $this->getParams());
@@ -153,9 +156,9 @@ class QueryBuilder extends AQueryBuilder {
         $columns = array_map(fn($item) => "`$item`", $columns);
         $paramMarks = array_fill(0, count($data), '?');
         $sqlCode = 'INSERT INTO '.$this->table.'('.implode(',', $columns).') VALUES ('.implode(',', $paramMarks).')';
-        $params = array_values($data);
-        $this->addParams($params);
-        return $this->db->execute($sqlCode, $params);
+        $params = array_values($this->runNormalize($data));
+        $this->setParams($params);
+        return $this->db->execute($sqlCode, $this->getParams());
     }
     public function insertMultiple(array $data): bool {
         $firstItem = $data[0];
@@ -164,12 +167,13 @@ class QueryBuilder extends AQueryBuilder {
         $paramMark = '('.implode(',', array_fill(0, count($firstItem), '?')).')';
         $paramMarks = array_fill(0, count($data), $paramMark);
         $sqlCode = 'INSERT INTO '.$this->table.'('.implode(',', $columns).') VALUES '.implode(',', $paramMarks);
-        $params = array_merge(...array_map(fn($item) => array_values($item), $data));
-        $this->addParams($params);
-        return $this->db->execute($sqlCode, $params);
+        $params = array_merge(...array_map(fn($item) => array_values($this->runNormalize($item)), $data));
+        $this->setParams($params);
+        return $this->db->execute($sqlCode, $this->getParams());
     }
     public function update(array $data): bool {
         $sets = [];
+        $data = $this->runNormalize($data);
         foreach ($data as $key => $value) {
             if(is_callable($value)) {
                 $builder = new static();

@@ -34,6 +34,14 @@ abstract class ARepository {
         return $this;
     }
 
+    protected function casts(): array {
+        return [];
+    }
+
+    protected function normalize(): array {
+        return $this->casts();
+    }
+
     /**
      * @throws Exception
      */
@@ -50,7 +58,10 @@ abstract class ARepository {
     }
 
     public function table(): IQueryBuilder {
-        return MyDB::table($this->table)->relations($this->processedRelations);
+        return MyDB::table($this->table)
+            ->relations($this->processedRelations)
+            ->normalize($this->normalize())
+            ->casts($this->casts());
     }
     public function getPrimaryKey(): string {
         return $this->primaryKey;

@@ -149,9 +149,9 @@ final class ColumnBuilder extends AColumnBuilder {
             return 'DROP INDEX `PRIMARY`';
         }
         if($this->foreign) {
-            return 'DROP FOREIGN KEY `'.$this->constraintName.'`';
+            return 'DROP FOREIGN KEY '.$this->constraintName;
         }
-        return 'DROP INDEX `'.$this->constraintName.'`';
+        return 'DROP INDEX '.$this->constraintName;
     }
 
     private function dropSql(): string {

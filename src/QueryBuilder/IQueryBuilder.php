@@ -41,6 +41,8 @@ interface IQueryBuilder {
     public function delete(): bool;
 
     public function relations(array $relations): self;
+    public function normalize(array $rules): self;
+    public function casts(array $rules): self;
 
     /**
      * @param array<string, int|string|float|bool|null> $data

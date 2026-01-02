@@ -70,7 +70,7 @@ abstract class ATableBuilder implements ITableBuilder {
         $this->columns[] = $column;
         return $column;
     }
-    public function decimal(string $name, int $precision = 8): IColumnBuilder {
+    public function decimal(string $name, int $precision = 2): IColumnBuilder {
         $column = $this->getColumn($name)->type(EType::DECIMAL)->length(10)->precision($precision);
         $this->columns[] = $column;
         return $column;
@@ -95,6 +95,12 @@ abstract class ATableBuilder implements ITableBuilder {
 
     public function text(string $name): IColumnBuilder {
         $column = $this->getColumn($name)->type(EType::TEXT);
+        $this->columns[] = $column;
+        return $column;
+    }
+
+    public function json(string $name): IColumnBuilder {
+        $column = $this->getColumn($name)->type(EType::JSON);
         $this->columns[] = $column;
         return $column;
     }

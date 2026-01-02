@@ -129,9 +129,14 @@ class DbMigrator {
             if(!method_exists($migrationClassName, $versionName)) {
                 continue;
             }
+            if(!$shouldRollback) {
+                if(MigrationRepository::exists($versionName, $migrationClassName)) {
+                    continue;
+                }
+            }
 
             if($shouldRollback && !MigrationRepository::exists($versionName, $migrationClassName)) {
-                $this->logger?->note("SKIP: $migrationClassName::$methodName no migration found for $versionName.");
+                $this->logger?->note("\tSKIP $methodName not found for $migrationClassName.");
                 continue;
             }
             $this->runVersionMigration($migrationClassName, $methodName);
@@ -150,7 +155,7 @@ class DbMigrator {
      */
     private function runVersionMigration(string $migrationClassName, string $methodName): void {
         if(!method_exists($migrationClassName, $methodName)) {
-            $this->logger?->warning("SKIP: $methodName not found for $migrationClassName.");
+            $this->logger?->warning("\tSKIP: $methodName not found for $migrationClassName.");
             return;
         }
         $this->logger?->note("Run $migrationClassName::$methodName");
@@ -187,9 +192,9 @@ class DbMigrator {
      * @throws MigrationVersionNotFoundException
      * @throws DriverNotFoundException
      */
-    public function run(string $version, bool $rollback = false): void {
+    public function run(string $version, bool $rollback = false): int {
         $this->assertVersion($version);
-        $this->runVersionMigrations($version, $rollback);
+        return $this->runVersionMigrations($version, $rollback);
     }
 
     /**
