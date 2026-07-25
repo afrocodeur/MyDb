@@ -12,6 +12,7 @@ use MyDB\QueryBuilder\IQueryBuilder;
 class QueryBuilder extends AQueryBuilder {
 
     protected function getWhereClause(): ?string {
+        $this->terminateWhereClause();
         if(!isset($this->where[0])) {
             return null;
         }

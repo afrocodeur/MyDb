@@ -25,6 +25,8 @@ interface ITableBuilder {
     public function timestamp(string $name): IColumnBuilder;
     public function time(string $name): IColumnBuilder;
     public function date(string $name): IColumnBuilder;
+    public function morphs(string $name): void;
+    public function nullableMorphs(string $name): void;
     public function timestamps(): void;
     public function softDelete(): void;
     public function dropColumn(string $name): void;

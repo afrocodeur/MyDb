@@ -135,6 +135,16 @@ abstract class ATableBuilder implements ITableBuilder {
         return $column;
     }
 
+    public function morphs(string $name): void {
+        $this->string($name.'_type');
+        $this->int($name.'_id')->unsigned();
+    }
+
+    public function nullableMorphs(string $name): void {
+        $this->string($name.'_type')->nullable();
+        $this->int($name.'_id')->nullable()->nullable();
+    }
+
     public function timestamps(): void {
         $this->timestamp('created_at')->nullable()->useCurrent();
         $this->timestamp('updated_at')->nullable()->useCurrent()->useCurrentOnUpdate();

@@ -16,6 +16,8 @@ abstract class AQueryBuilder implements IQueryBuilder {
     protected string $sqlQuery = '';
 
     protected ?string $table = null;
+    protected string $lastOperator = '';
+    protected bool $isParenthesesOpened = false;
     /** @var array<string> */
     protected array $columns = ['*'];
     /** @var array<string|IQueryBuilder|array<string|int|float|bool|IQueryBuilder>> */
@@ -104,10 +106,34 @@ abstract class AQueryBuilder implements IQueryBuilder {
         $this->params = array_merge($this->params, $params);
     }
 
+    protected function terminateWhereClause(): void {
+        if($this->isParenthesesOpened) {
+            $this->where[] = ')';
+
+        }
+        $this->isParenthesesOpened = false;
+    }
     protected function addWhereClause(string $operator, array $args): void {
         if(isset($this->where[0])) {
-            $this->where[] = $operator;
+            if($this->lastOperator && $this->lastOperator !== $operator) { // auto nested query
+                if($this->isParenthesesOpened) {
+                    $this->where[] = ')';
+                    $this->where[] = $operator;
+                    $this->where[] = '(';
+                }
+                else {
+                    $lastCondition = array_pop($this->where);
+                    $this->where[] = '(';
+                    $this->where[] = $lastCondition;
+                    $this->where[] = $operator;
+                }
+
+                $this->isParenthesesOpened = true;
+            } else {
+                $this->where[] = $operator;
+            }
         }
+        $this->lastOperator = $operator;
         if(count($args) === 1) {
             $data = $args[0];
             if(is_callable($data)) {
