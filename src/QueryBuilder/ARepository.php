@@ -18,17 +18,17 @@ abstract class ARepository {
 
     protected function setRelations(array $requestedRelations): self {
         $this->processedRelations = [];
-        foreach($requestedRelations as $relationNam => $relation) {
-            if(!isset($this->relations[$relationNam])) {
-                throw new Exception("Relation $relationNam not found");
+        foreach($requestedRelations as $relationName => $relation) {
+            if(!isset($this->relations[$relationName])) {
+                throw new Exception("Relation $relationName not found");
             }
-            $this->processedRelations[$relationNam] = $this->relations[$relationNam];
+            $this->processedRelations[$relationName] = $this->relations[$relationName];
             if(is_callable($relation)) {
-                $this->processedRelations[$relationNam]['callback'] = $relation;
+                $this->processedRelations[$relationName]['callback'] = $relation;
                 continue;
             }
             if(is_array($relation)) {
-                $this->processedRelations[$relationNam]['with'] = $relation;
+                $this->processedRelations[$relationName]['with'] = $relation;
             }
         }
         return $this;

@@ -142,7 +142,7 @@ abstract class ATableBuilder implements ITableBuilder {
 
     public function nullableMorphs(string $name): void {
         $this->string($name.'_type')->nullable();
-        $this->int($name.'_id')->nullable()->nullable();
+        $this->int($name.'_id')->unsigned()->nullable();
     }
 
     public function timestamps(): void {

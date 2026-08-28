@@ -114,22 +114,45 @@ class QueryBuilder extends AQueryBuilder {
             /** @var ARepository $repositoryInstance */
             $repositoryInstance = new $relation['repository'];
 
-            $queryBuilder = $repositoryInstance->with($relation['with'] ?? [])->table();
-
             $localKey = $relation['localKey'] ?? 'id';
             $localValues = array_column($rowData, $localKey);
-            $relationQuery = $queryBuilder->whereIn($relation['foreignKey'], $localValues);
 
-            if(isset($relation['callback']) && is_callable($relation['callback'])) {
-                $relationQuery = $relation['callback']($relationQuery);
+            $queryBuilder = $repositoryInstance->with($relation['with'] ?? [])->table();
+            $foreignKey = $relation['foreignKey'] ?? '';
+
+            if(isset($relation['morph'])) {
+                $morph = $relation['morph'];
+                $foreignKey = $morph.'_id';
+                $queryBuilder->where($morph.'_type', $relation['morphType']);
             }
 
-            $elements = $relationQuery->get();
+            $queryBuilder->whereIn($foreignKey, $localValues);
+
+            if(isset($relation['callback']) && is_callable($relation['callback'])) {
+                $queryBuilder = $relation['callback']($queryBuilder);
+            }
+
+            if(isset($relation['where'])) {
+                if(is_callable($relation['where'])) {
+                    $relation['where']($queryBuilder);
+                }
+                else {
+                    foreach($relation['where'] as $relationKey => $value) {
+                        if(is_array($value)) {
+                            $queryBuilder->whereIn($relationKey, $value);
+                            continue;
+                        }
+                        $queryBuilder->where($relationKey, $value);
+                    }
+                }
+            }
+
+            $elements = $queryBuilder->get();
 
             $elementsByForeignKey = [];
 
             foreach ($elements as $element) {
-                $foreignKeyValue = $element[$relation['foreignKey']];
+                $foreignKeyValue = $element[$foreignKey];
                 if (!isset($elementsByForeignKey[$foreignKeyValue])) {
                     $elementsByForeignKey[$foreignKeyValue] = [];
                 }
@@ -176,6 +199,7 @@ class QueryBuilder extends AQueryBuilder {
         $sets = [];
         $data = $this->runNormalize($data);
         foreach ($data as $key => $value) {
+            $key = $this->wrapName($key);
             if(is_callable($value)) {
                 $builder = new static();
                 $value($builder);
