@@ -115,37 +115,31 @@ class QueryBuilder extends AQueryBuilder {
             $repositoryInstance = new $relation['repository'];
 
             $localKey = $relation['localKey'] ?? 'id';
-            $localValues = array_column($rowData, $localKey);
+            $localValues = array_values(array_unique(array_filter(array_column($rowData, $localKey))));
+
+            if (empty($localValues)) {
+                foreach ($rowData as &$row) {
+                    $row[$key] = (isset($relation['type']) && strtolower($relation['type']) === 'hasone') ? null : [];
+                }
+                continue;
+            }
 
             $queryBuilder = $repositoryInstance->with($relation['with'] ?? [])->table();
             $foreignKey = $relation['foreignKey'] ?? '';
+            $type = strtolower($relation['type'] ?? 'hasmany');
 
-            if(isset($relation['morph'])) {
+            if ($type === 'belongstomany') {
+                $this->handleBelongsToMany($key, $rowData, $localValues, $relation, $queryBuilder, $repositoryInstance);
+                continue;
+            }
+            else if(isset($relation['morph'])) {
                 $morph = $relation['morph'];
                 $foreignKey = $morph.'_id';
                 $queryBuilder->where($morph.'_type', $relation['morphType']);
             }
 
             $queryBuilder->whereIn($foreignKey, $localValues);
-
-            if(isset($relation['callback']) && is_callable($relation['callback'])) {
-                $queryBuilder = $relation['callback']($queryBuilder);
-            }
-
-            if(isset($relation['where'])) {
-                if(is_callable($relation['where'])) {
-                    $relation['where']($queryBuilder);
-                }
-                else {
-                    foreach($relation['where'] as $relationKey => $value) {
-                        if(is_array($value)) {
-                            $queryBuilder->whereIn($relationKey, $value);
-                            continue;
-                        }
-                        $queryBuilder->where($relationKey, $value);
-                    }
-                }
-            }
+            $this->customWhereCondition($relation, $queryBuilder);
 
             $elements = $queryBuilder->get();
 
@@ -171,6 +165,100 @@ class QueryBuilder extends AQueryBuilder {
         }
 
         return array_map(fn($row) => $this->runCasts($row), $rowData);
+    }
+    private function customWhereCondition(array $relation, IQueryBuilder &$queryBuilder, string $callbackKey = 'callback', string $whereKey = 'where'): void {
+        if (isset($relation[$callbackKey]) && is_callable($relation[$callbackKey])) {
+            $result = $relation[$callbackKey]($queryBuilder);
+            if($result instanceof IQueryBuilder) {
+                $queryBuilder = $result;
+            }
+        }
+        if(isset($relation[$whereKey])) {
+            if(is_callable($relation[$whereKey])) {
+                $relation[$whereKey]($queryBuilder);
+            }
+            else {
+                foreach($relation[$whereKey] as $relationKey => $value) {
+                    if(is_array($value)) {
+                        $queryBuilder->whereIn($relationKey, $value);
+                        continue;
+                    }
+                    $queryBuilder->where($relationKey, $value);
+                }
+            }
+        }
+    }
+    private function handleBelongsToMany(string|int $key, array &$rowData, array $localValues, array $relation, IQueryBuilder $queryBuilder, ARepository $repositoryInstance): void {
+
+        $pivotTable      = $relation['pivotTable'];
+        $localKey        = $relation['localKey'] ?? 'id';
+        $foreignPivotKey = $relation['foreignPivotKey'] ?? $relation['foreignKey'];
+        $relatedPivotKey = $relation['relatedPivotKey'];
+        $relatedKey      = $relation['relatedKey'] ?? $repositoryInstance->getPrimaryKey() ?? 'id';
+        $pivotColumns    = $relation['pivotColumns'] ?? [];
+
+        // Get the pivot data
+        $pivotQuery = $this->db->queryBuilder()->from($pivotTable)
+            ->whereIn($foreignPivotKey, $localValues)
+            ->select($foreignPivotKey, $relatedPivotKey, $pivotColumns);
+        $this->customWhereCondition($relation, $pivotQuery, callbackKey: 'callbackPivot', whereKey: 'wherePivot');
+
+        $pivotRows = $pivotQuery->get();
+
+        if (empty($pivotRows)) {
+            foreach ($rowData as &$row) {
+                $row[$key] = [];
+            }
+            return;
+        }
+
+        $targetValues = array_values(array_unique(array_filter(array_column($pivotRows, $relatedPivotKey))));
+        if (empty($targetValues)) {
+            foreach ($rowData as &$row) {
+                $row[$key] = [];
+            }
+            return;
+        }
+
+        $queryBuilder->whereIn($relatedKey, $targetValues);
+        $this->customWhereCondition($relation, $queryBuilder);
+
+        $elements = $queryBuilder->get();
+
+        $elementsById = [];
+        foreach ($elements as $element) {
+            $elementsById[$element[$relatedKey]] = $element;
+        }
+
+        $elementsByParentKey = [];
+        foreach ($pivotRows as $pivotRow) {
+            $foreignValue = $pivotRow[$foreignPivotKey];
+            $relatedValue = $pivotRow[$relatedPivotKey];
+
+            if (isset($elementsById[$relatedValue])) {
+                $item = $elementsById[$relatedValue];
+
+                // Extract custom pivot attributes
+                $pivotData = array_diff_key($pivotRow, [
+                    $foreignPivotKey => true,
+                    $relatedPivotKey => true,
+                ]);
+                if(isset($relation['merge']) && $relation['merge'] === true) {
+                    $item = array_merge($item, $pivotData);
+                } else {
+                    $item['pivot'] = $pivotData;
+                }
+
+                $elementsByParentKey[$foreignValue][] = $item;
+            }
+        }
+
+        foreach ($rowData as &$row) {
+            $lKey = $row[$localKey] ?? null;
+            $row[$key] = $elementsByParentKey[$lKey] ?? [];
+        }
+
+        unset($row);
     }
     public function delete(): bool {
         return $this->db->execute($this->getDeleteQuery(), $this->getParams());

@@ -177,7 +177,11 @@ abstract class AQueryBuilder implements IQueryBuilder {
      * @param array<string> $columns
      * @return IQueryBuilder
      */
-    public function select(array $columns): self {
+    public function select(string|array ...$arguments): self {
+        $columns = [];
+        array_walk_recursive($arguments, function($item) use(&$columns) {
+            $columns[] = $item;
+        });
         $this->columns = $this->wrapName($columns);;
         return $this;
     }
