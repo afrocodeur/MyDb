@@ -32,7 +32,18 @@ abstract class ARepository {
                 continue;
             }
             if(is_array($relation)) {
-                $this->processedRelations[$relationName]['with'] = $relation;
+                $this->processedRelations[$relationName]['with'] = [];
+                foreach($relation as $inlineRelationName => $relationDescription) {
+                    if(is_callable($relationDescription) || $inlineRelationName === '$where') {
+                        $this->processedRelations[$inlineRelationName]['callback'] = $relationDescription;
+                        continue;
+                    }
+                    if(is_string($inlineRelationName)) {
+                        $this->processedRelations[$inlineRelationName]['with'][$inlineRelationName] = $relationDescription;
+                        continue;
+                    }
+                    $this->processedRelations[$inlineRelationName]['with'][] = $relationDescription;
+                }
             }
         }
         return $this;
