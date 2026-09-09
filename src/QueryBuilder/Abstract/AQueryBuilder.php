@@ -290,10 +290,12 @@ abstract class AQueryBuilder implements IQueryBuilder {
         $this->orderBy[$column] = $direction;
         return $this;
     }
-    public function groupBy(string $column, string $direction = 'ASC'): self {
-        $direction = strtoupper($direction) === 'DESC' ? 'DESC' : 'ASC';
+    public function groupBy(string $column, ?string $direction = null): self {
         $column = $this->wrapName($column);
-        $this->groupBy[$column] = $direction;
+        $this->groupBy[] = $direction;
+        if($direction !== null) {
+            $this->orderBy($column, $direction);
+        }
         return $this;
     }
     public function having(Closure $condition): IQueryBuilder {

@@ -28,7 +28,7 @@ interface IQueryBuilder {
     public function getSqlQuery(): string;
 
     public function orderBy(string $column, string $direction): self;
-    public function groupBy(string $column, string $direction = 'ASC'): self;
+    public function groupBy(string $column, ?string $direction = null): self;
     public function having(Closure $condition): self;
     public function limit(int $take): self;
     public function skip(int $skip): self;

@@ -196,12 +196,18 @@ class QueryBuilder extends AQueryBuilder {
         $relatedPivotKey = $relation['relatedPivotKey'];
         $relatedKey      = $relation['relatedKey'] ?? $repositoryInstance->getPrimaryKey() ?? 'id';
         $pivotColumns    = $relation['pivotColumns'] ?? [];
+        $where    = $relation['where'] ?? null;
 
         // Get the pivot data
         $pivotQuery = $this->db->queryBuilder()->from($pivotTable)
             ->whereIn($foreignPivotKey, $localValues)
             ->select($foreignPivotKey, $relatedPivotKey, $pivotColumns);
+
         $this->customWhereCondition($relation, $pivotQuery, callbackKey: 'callbackPivot', whereKey: 'wherePivot');
+
+        if($where) {
+            $where($pivotQuery);
+        }
 
         $pivotRows = $pivotQuery->get();
 

@@ -22,6 +22,10 @@ abstract class ARepository {
             if(!isset($this->relations[$relationName])) {
                 throw new Exception("Relation $relationName not found");
             }
+            if($relation instanceof Relation) {
+                $this->processedRelations[$relationName] = array_merge($this->processedRelations[$relationName], $relation->getRelationDescription());
+                continue;
+            }
             $this->processedRelations[$relationName] = $this->relations[$relationName];
             if(is_callable($relation)) {
                 $this->processedRelations[$relationName]['callback'] = $relation;
