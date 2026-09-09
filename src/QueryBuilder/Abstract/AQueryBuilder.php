@@ -23,7 +23,7 @@ abstract class AQueryBuilder implements IQueryBuilder {
     /** @var array<string|IQueryBuilder|array<string|int|float|bool|IQueryBuilder>> */
     protected array $where = [];
     protected ?IQueryBuilder $having = null;
-    /** @var array<string> */
+    /** @var array<string, string> */
     protected array $groupBy = [];
     /** @var array<string, string> */
     protected array $orderBy = [];
@@ -46,16 +46,28 @@ abstract class AQueryBuilder implements IQueryBuilder {
     }
 
     public function wrapName(string|array|Raw $column): array|string {
-        if(is_array($column)) {
+        if (is_array($column)) {
             return array_map(fn($item) => $this->wrapName($item), $column);
         }
-        if($column instanceof Raw) {
+
+        if ($column instanceof Raw) {
             return $column->value(parentheses: false);
         }
+
         $column = trim($column);
-        if($column[0] === '`') {
+        if ($column === '' || $column === '*') {
             return $column;
         }
+
+        if (str_contains($column, '.')) {
+            $parts = explode('.', $column);
+            return implode('.', array_map(fn($p) => $this->wrapName($p), $parts));
+        }
+
+        if (str_starts_with($column, '`')) {
+            return $column;
+        }
+
         return "`$column`";
     }
 
@@ -71,6 +83,8 @@ abstract class AQueryBuilder implements IQueryBuilder {
         $this->castRules = [];
         $this->normalizeRules = [];
         $this->relations = [];
+        $this->isParenthesesOpened = false;
+        $this->lastOperator = '';
     }
     public function relations(array $relations = []): self {
         $this->relations = $relations;
@@ -177,13 +191,49 @@ abstract class AQueryBuilder implements IQueryBuilder {
      * @param array<string> $columns
      * @return IQueryBuilder
      */
-    public function select(string|array ...$arguments): self {
-        $columns = [];
-        array_walk_recursive($arguments, function($item) use(&$columns) {
-            $columns[] = $item;
-        });
-        $this->columns = $this->wrapName($columns);;
+    public function select(string|array|Raw ...$arguments): self {
+        $formattedColumns = [];
+
+        foreach ($arguments as $argument) {
+            $this->appendColumn($argument, $formattedColumns);
+        }
+
+        $this->columns = $formattedColumns ?: ['*'];
+
         return $this;
+    }
+    private function appendColumn(mixed $argument, array &$formattedColumns, ?string $tablePrefix = null): void {
+        if (is_array($argument)) {
+            foreach ($argument as $column => $alias) {
+                if (is_string($column) && is_array($alias)) {
+                    foreach ($alias as $subKey => $subValue) {
+                        $this->appendColumn(
+                            is_string($subKey) ? [$subKey => $subValue] : $subValue,
+                            $formattedColumns,
+                            $column
+                        );
+                    }
+                } elseif (is_string($column)) {
+                    $fullColumn = $tablePrefix !== null
+                        ? $this->wrapName($tablePrefix) . '.' . $this->wrapName($column)
+                        : $this->wrapName($column);
+
+                    $formattedColumns[] = $fullColumn . ' AS ' . $this->wrapName($alias);
+                } else {
+                    $this->appendColumn($alias, $formattedColumns, $tablePrefix);
+                }
+            }
+            return;
+        }
+
+        if ($argument instanceof Raw) {
+            $formattedColumns[] = $this->wrapName($argument);
+            return;
+        }
+
+        $formattedColumns[] = $tablePrefix !== null
+            ? $this->wrapName($tablePrefix) . '.' . $this->wrapName($argument)
+            : $this->wrapName($argument);
     }
 
     public function where(mixed ...$args): self {
@@ -203,11 +253,11 @@ abstract class AQueryBuilder implements IQueryBuilder {
         return $this;
     }
     public function whereNotNull(string $column): self {
-        $this->addWhereClause(self::$LOGICAL_OPERATOR_AND, [$column, 'IS', 'NOT NULL']);
+        $this->addWhereClause(self::$LOGICAL_OPERATOR_AND, [$column, 'IS NOT', 'NULL']);
         return $this;
     }
     public function orWhereNotNull(string $column): self {
-        $this->addWhereClause(self::$LOGICAL_OPERATOR_OR, [$column, 'IS', 'NOT NULL']);
+        $this->addWhereClause(self::$LOGICAL_OPERATOR_OR, [$column, 'IS NOT', 'NULL']);
         return $this;
     }
     public function whereIn(string $column, array|Closure $subQuery): self {
@@ -234,14 +284,16 @@ abstract class AQueryBuilder implements IQueryBuilder {
         $this->addWhereClause(self::$LOGICAL_OPERATOR_OR, [$column, 'BETWEEN', $subQuery]);
         return $this;
     }
-    public function orderBy(string $column, string $direction): self {
+    public function orderBy(string $column, string $direction = 'ASC'): self {
+        $direction = strtoupper($direction) === 'DESC' ? 'DESC' : 'ASC';
         $column = $this->wrapName($column);
         $this->orderBy[$column] = $direction;
         return $this;
     }
-    public function groupBy(string $colum, string $direction = 'ASC'): self {
-        $colum = $this->wrapName($colum);
-        $this->groupBy[$colum] = $direction;
+    public function groupBy(string $column, string $direction = 'ASC'): self {
+        $direction = strtoupper($direction) === 'DESC' ? 'DESC' : 'ASC';
+        $column = $this->wrapName($column);
+        $this->groupBy[$column] = $direction;
         return $this;
     }
     public function having(Closure $condition): IQueryBuilder {
@@ -256,7 +308,7 @@ abstract class AQueryBuilder implements IQueryBuilder {
         return $this;
     }
     public function skip(int $skip): self {
-        $this->limitStart = 0;
+        $this->limitStart = $skip;
         return $this;
     }
     public function take(int $take): self {

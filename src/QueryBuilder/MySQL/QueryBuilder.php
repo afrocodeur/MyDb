@@ -306,7 +306,7 @@ class QueryBuilder extends AQueryBuilder {
     }
 
     public function count(): int {
-        $results = $this->select([Raw::wrap('COUNT(*) as nb_elements')])->get();
+        $results = $this->select([Raw::sql('COUNT(*) as nb_elements')])->get();
         return $results[0]['nb_elements'];
     }
 

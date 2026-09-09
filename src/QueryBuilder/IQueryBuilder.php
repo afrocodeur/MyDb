@@ -10,7 +10,7 @@ interface IQueryBuilder {
 
     public function from(string $table): self;
     /** @param array<string> $columns */
-    public function select(array $columns): self;
+    public function select(array|string ...$arguments): self;
     public function where(mixed ...$args): self;
     public function orWhere(mixed ...$args): self;
     public function whereNull(string $column): self;
@@ -28,7 +28,7 @@ interface IQueryBuilder {
     public function getSqlQuery(): string;
 
     public function orderBy(string $column, string $direction): self;
-    public function groupBy(string $colum, string $direction = 'ASC'): self;
+    public function groupBy(string $column, string $direction = 'ASC'): self;
     public function having(Closure $condition): self;
     public function limit(int $take): self;
     public function skip(int $skip): self;

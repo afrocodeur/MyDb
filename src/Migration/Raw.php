@@ -13,7 +13,7 @@ final readonly class Raw {
         return $this->code;
     }
 
-    public static function wrap(string $code): Raw {
+    public static function sql(string $code): Raw {
         return new self($code);
     }
 

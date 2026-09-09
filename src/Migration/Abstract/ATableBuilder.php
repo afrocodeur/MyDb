@@ -18,7 +18,7 @@ abstract class ATableBuilder implements ITableBuilder {
     abstract public function getColumn(string $name): IColumnBuilder;
 
     public function uuid(string $name = 'uuid', int $length = 36): void {
-        $column = $this->getColumn($name)->type(EType::STRING)->length($length)->unique()->default(Raw::wrap('uuid()'));
+        $column = $this->getColumn($name)->type(EType::STRING)->length($length)->unique()->default(Raw::sql('uuid()'));
         $this->columns[] = $column;
     }
     public function id(string $name = 'id', int $length = 11): IColumnBuilder {
