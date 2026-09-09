@@ -203,7 +203,7 @@ class QueryBuilder extends AQueryBuilder {
             ->whereIn($foreignPivotKey, $localValues)
             ->select($foreignPivotKey, $relatedPivotKey, $pivotColumns);
 
-        $this->customWhereCondition($relation, $pivotQuery, callbackKey: 'callbackPivot', whereKey: 'wherePivot');
+        $this->customWhereCondition($relation, $pivotQuery, callbackKey: 'callbackPivot', whereKey: 'pivotWhere');
 
         if($where) {
             $where($pivotQuery);

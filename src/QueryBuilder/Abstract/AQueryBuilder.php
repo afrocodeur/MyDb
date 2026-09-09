@@ -292,7 +292,7 @@ abstract class AQueryBuilder implements IQueryBuilder {
     }
     public function groupBy(string $column, ?string $direction = null): self {
         $column = $this->wrapName($column);
-        $this->groupBy[] = $direction;
+        $this->groupBy[] = $column;
         if($direction !== null) {
             $this->orderBy($column, $direction);
         }

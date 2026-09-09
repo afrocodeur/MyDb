@@ -22,11 +22,11 @@ abstract class ARepository {
             if(!isset($this->relations[$relationName])) {
                 throw new Exception("Relation $relationName not found");
             }
+            $this->processedRelations[$relationName] = $this->relations[$relationName];
             if($relation instanceof Relation) {
                 $this->processedRelations[$relationName] = array_merge($this->processedRelations[$relationName], $relation->getRelationDescription());
                 continue;
             }
-            $this->processedRelations[$relationName] = $this->relations[$relationName];
             if(is_callable($relation)) {
                 $this->processedRelations[$relationName]['callback'] = $relation;
                 continue;
@@ -35,14 +35,15 @@ abstract class ARepository {
                 $this->processedRelations[$relationName]['with'] = [];
                 foreach($relation as $inlineRelationName => $relationDescription) {
                     if(is_callable($relationDescription) || $inlineRelationName === '$where') {
-                        $this->processedRelations[$inlineRelationName]['callback'] = $relationDescription;
+                        $whereKey = in_array('pivotWhere', array_keys($this->processedRelations[$relationName])) ? 'pivotWhere' : 'where';
+                        $this->processedRelations[$relationName][$whereKey] = $relationDescription;
                         continue;
                     }
                     if(is_string($inlineRelationName)) {
-                        $this->processedRelations[$inlineRelationName]['with'][$inlineRelationName] = $relationDescription;
+                        $this->processedRelations[$relationName]['with'][$inlineRelationName] = $relationDescription;
                         continue;
                     }
-                    $this->processedRelations[$inlineRelationName]['with'][] = $relationDescription;
+                    $this->processedRelations[$relationName]['with'][] = $relationDescription;
                 }
             }
         }
