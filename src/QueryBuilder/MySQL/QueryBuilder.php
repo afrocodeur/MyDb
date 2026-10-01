@@ -38,9 +38,11 @@ class QueryBuilder extends AQueryBuilder {
                 $value = '('.implode(',', $value).')';
                 $this->addParams($valueSource);
             }
-            else if($operator !== 'IS') {
-                $this->addParams([$valueSource]);
-                $value = '?';
+            else if($operator !== 'IS' && $operator !== 'IS NOT') {
+                if($valueSource != null && (strtolower(strval($valueSource)) != 'null')) {
+                    $this->addParams([$valueSource]);
+                    $value = '?';
+                }
             }
             $clauses[] = "$column $operator $value";
         }

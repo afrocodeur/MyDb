@@ -9,7 +9,7 @@
             "email": "d.mamadou@miridoo.net"
         }
     ],
-    "version": "0.0.99",
+    "version": "0.0.100",
     "autoload": {
         "psr-4": {
             "MyDB\\": "src/"
