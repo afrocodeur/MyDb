@@ -39,10 +39,8 @@ class QueryBuilder extends AQueryBuilder {
                 $this->addParams($valueSource);
             }
             else if($operator !== 'IS' && $operator !== 'IS NOT') {
-                if($valueSource != null && (strtolower(strval($valueSource)) != 'null')) {
-                    $this->addParams([$valueSource]);
-                    $value = '?';
-                }
+                $this->addParams([$valueSource]);
+                $value = '?';
             }
             $clauses[] = "$column $operator $value";
         }
@@ -199,6 +197,7 @@ class QueryBuilder extends AQueryBuilder {
         $relatedKey      = $relation['relatedKey'] ?? $repositoryInstance->getPrimaryKey() ?? 'id';
         $pivotColumns    = $relation['pivotColumns'] ?? [];
         $where    = $relation['where'] ?? null;
+        $unique   = ($relation['unique'] ?? false) === true;
 
         // Get the pivot data
         $pivotQuery = $this->db->queryBuilder()->from($pivotTable)
@@ -239,11 +238,21 @@ class QueryBuilder extends AQueryBuilder {
         }
 
         $elementsByParentKey = [];
+        $alreadyAdded = [];
+
         foreach ($pivotRows as $pivotRow) {
             $foreignValue = $pivotRow[$foreignPivotKey];
             $relatedValue = $pivotRow[$relatedPivotKey];
 
             if (isset($elementsById[$relatedValue])) {
+
+                if ($unique) {
+                    if (isset($alreadyAdded[$relatedValue])) {
+                        continue;
+                    }
+                    $alreadyAdded[$relatedValue] = true;
+                }
+
                 $item = $elementsById[$relatedValue];
 
                 // Extract custom pivot attributes
