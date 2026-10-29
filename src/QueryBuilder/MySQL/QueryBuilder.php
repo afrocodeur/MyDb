@@ -164,7 +164,7 @@ class QueryBuilder extends AQueryBuilder {
             }
         }
 
-        return array_map(fn($row) => $this->runCasts($row), $rowData);
+        return $rowData;
     }
     private function customWhereCondition(array $relation, IQueryBuilder &$queryBuilder, string $callbackKey = 'callback', string $whereKey = 'where'): void {
         if (isset($relation[$callbackKey]) && is_callable($relation[$callbackKey])) {
@@ -189,7 +189,6 @@ class QueryBuilder extends AQueryBuilder {
         }
     }
     private function handleBelongsToMany(string|int $key, array &$rowData, array $localValues, array $relation, IQueryBuilder $queryBuilder, ARepository $repositoryInstance): void {
-
         $pivotTable      = $relation['pivotTable'];
         $localKey        = $relation['localKey'] ?? 'id';
         $foreignPivotKey = $relation['foreignPivotKey'] ?? $relation['foreignKey'];
@@ -200,7 +199,14 @@ class QueryBuilder extends AQueryBuilder {
         $unique   = ($relation['unique'] ?? false) === true;
 
         // Get the pivot data
-        $pivotQuery = $this->db->queryBuilder()->from($pivotTable)
+        $pivotQueryBuilder = null;
+        if(isset($relation['pivotRepository'])) {
+            $pivotQueryBuilder = (new $relation['pivotRepository'])->table();
+        }
+        else {
+            $pivotQueryBuilder = $this->db->queryBuilder()->from($pivotTable);
+        }
+        $pivotQuery = $pivotQueryBuilder
             ->whereIn($foreignPivotKey, $localValues)
             ->select($foreignPivotKey, $relatedPivotKey, $pivotColumns);
 
@@ -247,10 +253,11 @@ class QueryBuilder extends AQueryBuilder {
             if (isset($elementsById[$relatedValue])) {
 
                 if ($unique) {
-                    if (isset($alreadyAdded[$relatedValue])) {
+                    $uniqueKey = "$relatedValue-$foreignValue";
+                    if (isset($alreadyAdded[$uniqueKey])) {
                         continue;
                     }
-                    $alreadyAdded[$relatedValue] = true;
+                    $alreadyAdded[$uniqueKey] = true;
                 }
 
                 $item = $elementsById[$relatedValue];

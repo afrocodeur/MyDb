@@ -41,9 +41,6 @@ abstract class AQueryBuilder implements IQueryBuilder {
     public function runNormalize(array $params): array {
         return DataNormalizer::normalize($params, $this->normalizeRules);
     }
-    public function runCasts(array $rawData): array {
-        return DataCaster::cast($rawData, $this->castRules);
-    }
 
     public function wrapName(string|array|Raw $column): array|string {
         if (is_array($column)) {
@@ -152,8 +149,8 @@ abstract class AQueryBuilder implements IQueryBuilder {
             $data = $args[0];
             if(is_callable($data)) {
                 $builder = new static();
-                call_user_func_array($data, [$builder]);
-                $this->where[] = $builder;
+                $otherBuilder = call_user_func_array($data, [$builder]);
+                $this->where[] = $otherBuilder ?? $builder;
             }
             if($data instanceof Raw) {
                 $this->where[] = $data->value();
@@ -176,8 +173,8 @@ abstract class AQueryBuilder implements IQueryBuilder {
 
         if(is_callable($value)) {
             $builder = new static();
-            call_user_func_array($value, [$builder]);
-            $value = $builder;
+            $otherBuilder = call_user_func_array($value, [$builder]);
+            $value = $otherBuilder ?? $builder;
         }
         $this->where[] = [$column, $operator, $value];
     }
