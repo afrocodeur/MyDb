@@ -62,7 +62,7 @@ interface IQueryBuilder {
     public function update(array $data): bool;
     public function flush(): void;
 
-    public function registerPlugin(IPlugin $plugin): void;
-    public function registerPlugins(array $plugins): void;
+    public function registerPlugin(IPlugin $plugin): self;
+    public function registerPlugins(array $plugins): self;
     public function getPlugins(): array;
 }
