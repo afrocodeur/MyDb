@@ -4,6 +4,7 @@ namespace MyDB\QueryBuilder\Abstract;
 
 use MyDB\Migration\Raw;
 use MyDB\MyDB;
+use MyDB\QueryBuilder\Abstract\Plugin\IPlugin;
 use MyDB\QueryBuilder\IQueryBuilder;
 use Closure;
 
@@ -32,6 +33,30 @@ abstract class AQueryBuilder implements IQueryBuilder {
     protected array $relations = [];
     protected array $castRules = [];
     protected array $normalizeRules = [];
+
+    protected string $sqlType = 'SELECT';
+
+    private array $plugins = [];
+
+    public function registerPlugin(IPlugin $plugin): self {
+        $this->plugins[] = $plugin;
+        usort($this->plugins, fn($a, $b) => $a->priority() <=> $b->priority());
+        return $this;
+    }
+
+    /**
+     * @param array<IPlugin> $plugins
+     */
+    public function registerPlugins(array $plugins): self {
+        foreach ($plugins as $plugin) {
+            $this->registerPlugin($plugin);
+        }
+        return $this;
+    }
+
+    public function getPlugins(): array {
+        return $this->plugins;
+    }
 
 
     abstract protected function getWhereClause(): ?string;
@@ -231,6 +256,13 @@ abstract class AQueryBuilder implements IQueryBuilder {
         $formattedColumns[] = $tablePrefix !== null
             ? $this->wrapName($tablePrefix) . '.' . $this->wrapName($argument)
             : $this->wrapName($argument);
+    }
+
+    public function when(bool $condition, Closure $callback): self {
+        if($condition) {
+            $callback($this);
+        }
+        return $this;
     }
 
     public function where(mixed ...$args): self {

@@ -33,6 +33,8 @@ interface ITableBuilder {
 
     public function primary(string ...$columns): IColumnBuilder;
     public function unique(string ...$columns): IColumnBuilder;
+    public function index(string ...$columns): IColumnBuilder;
+    public function fulltext(string ...$columns): IColumnBuilder;
 
 
     public function rename(string $newName): void;

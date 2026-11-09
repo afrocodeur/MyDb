@@ -109,6 +109,13 @@ final class ColumnBuilder extends AColumnBuilder {
             if($this->unique) {
                 $sqlCode .= ' UNIQUE ('.implode(', ', $this->names).')';
             }
+            if($this->index) {
+                $indexName = $this->constraintName ?? implode('_', array_map(fn($n) => trim($n, '`'), $this->names)).'_index';
+                $sqlCode .= ' INDEX `'.$indexName.'` ('.implode(', ', $this->names).')';
+            }
+            if($this->fulltext) {
+                $sqlCode .= ' FULLTEXT ('.implode(', ', $this->names).')';
+            }
             $this->constraintCode = $sqlCode;
             return '';
         }

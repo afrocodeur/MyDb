@@ -172,6 +172,19 @@ abstract class ATableBuilder implements ITableBuilder {
         return $column;
     }
 
+    public function index(string ...$columns): IColumnBuilder {
+        $column = $this->getColumn('')->columns(...$columns)->index();
+        $this->columns[] = $column;
+        return $column;
+    }
+
+    public function fulltext(string ...$columns): IColumnBuilder {
+        $column = $this->getColumn('')->columns(...$columns)->fulltext();
+        $this->columns[] = $column;
+        return $column;
+    }
+
+
     public function rename(string $newName): void {
         $this->newName = $newName;
     }

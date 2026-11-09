@@ -5,6 +5,7 @@ namespace MyDB\QueryBuilder;
 use Closure;
 use MyDB\MyDB;
 use Exception;
+use MyDB\QueryBuilder\Abstract\Plugin\IPlugin;
 
 abstract class ARepository {
 
@@ -15,6 +16,14 @@ abstract class ARepository {
     protected array $relations = [];
 
     protected array $processedRelations = [];
+
+
+    /**
+     * @return array<IPlugin>
+     */
+    public function localPlugins(): array {
+        return [];
+    }
 
     protected function setRelations(array $requestedRelations): self {
         $this->processedRelations = [];
@@ -77,7 +86,8 @@ abstract class ARepository {
         return MyDB::table($this->table)
             ->relations($this->processedRelations)
             ->normalize($this->normalize())
-            ->casts($this->casts());
+            ->casts($this->casts())
+            ->registerPlugins($this->localPlugins());
     }
     public function getPrimaryKey(): string {
         return $this->primaryKey;
@@ -95,6 +105,19 @@ abstract class ARepository {
     }
     public function last(): ?array {
         return $this->table()->orderBy($this->orderKey ?? $this->primaryKey, 'DESC')->first();
+    }
+
+    public function lastInsertedId(): ?int {
+        return MyDB::lastInsertedId();
+    }
+
+    /**
+     * @param callable $callback
+     * @return mixed
+     * @throws \Throwable
+     */
+    public function transaction(callable $callback): mixed {
+        return MyDB::transaction(fn() => $callback($this));
     }
 
 }

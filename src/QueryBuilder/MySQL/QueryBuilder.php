@@ -105,7 +105,8 @@ class QueryBuilder extends AQueryBuilder {
      * @throws \Exception
      */
     public function get(): array {
-        $rowData = $this->db->get($this->getSelectQuery(), $this->getParams());
+        $this->sqlType = 'SELECT';
+        $rowData = $this->db->get($this->getSelectQuery(), $this->getParams(), $this);
         if(empty($rowData)) {
             return [];
         }
@@ -285,18 +286,26 @@ class QueryBuilder extends AQueryBuilder {
         unset($row);
     }
     public function delete(): bool {
-        return $this->db->execute($this->getDeleteQuery(), $this->getParams());
+        $this->sqlType = 'DELETE';
+        return $this->db->execute($this->getDeleteQuery(), $this->getParams(), $this);
     }
+
+    public function getSqlType(): string {
+        return $this->sqlType;
+    }
+
     public function insert(array $data): bool {
+        $this->sqlType = 'INSERT';
         $columns = array_keys($data);
         $columns = array_map(fn($item) => "`$item`", $columns);
         $paramMarks = array_fill(0, count($data), '?');
         $sqlCode = 'INSERT INTO '.$this->table.'('.implode(',', $columns).') VALUES ('.implode(',', $paramMarks).')';
         $params = array_values($this->runNormalize($data));
         $this->setParams($params);
-        return $this->db->execute($sqlCode, $this->getParams());
+        return $this->db->execute($sqlCode, $this->getParams(), $this);
     }
     public function insertMultiple(array $data): bool {
+        $this->sqlType = 'INSERT';
         $firstItem = $data[0];
         $columns = array_map(fn($item) => "`$item`", array_keys($firstItem));
 
@@ -305,9 +314,10 @@ class QueryBuilder extends AQueryBuilder {
         $sqlCode = 'INSERT INTO '.$this->table.'('.implode(',', $columns).') VALUES '.implode(',', $paramMarks);
         $params = array_merge(...array_map(fn($item) => array_values($this->runNormalize($item)), $data));
         $this->setParams($params);
-        return $this->db->execute($sqlCode, $this->getParams());
+        return $this->db->execute($sqlCode, $this->getParams(), $this);
     }
     public function update(array $data): bool {
+        $this->sqlType = 'UPDATE';
         $sets = [];
         $data = $this->runNormalize($data);
         foreach ($data as $key => $value) {
@@ -325,7 +335,8 @@ class QueryBuilder extends AQueryBuilder {
 
         return $this->db->execute(
             $this->addConditionClauses('UPDATE '.$this->table.' SET '.implode(', ', $sets)),
-            $this->getParams()
+            $this->getParams(),
+            $this
         );
     }
 

@@ -36,6 +36,8 @@ abstract class AColumnBuilder implements IColumnBuilder {
     protected bool $dropConstraint = false;
     protected ?string $comment = null;
     protected ?string $constraintCode = null;
+    protected bool $index = false;
+    protected bool $fulltext = false;
 
 
     public function name(string $name): self {
@@ -48,6 +50,16 @@ abstract class AColumnBuilder implements IColumnBuilder {
     }
     public function type(EType $type): self {
         $this->type = $type;
+        return $this;
+    }
+
+    public function index(): self {
+        $this->index = true;
+        return $this;
+    }
+
+    public function fulltext(): self {
+        $this->fulltext = true;
         return $this;
     }
 

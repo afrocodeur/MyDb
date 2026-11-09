@@ -4,6 +4,7 @@ namespace MyDB\QueryBuilder;
 
 use MyDB\MyDB;
 use Closure;
+use MyDB\QueryBuilder\Abstract\Plugin\IPlugin;
 
 interface IQueryBuilder {
     public function useDb(MyDB $db): void;
@@ -11,6 +12,7 @@ interface IQueryBuilder {
     public function from(string $table): self;
     /** @param array<string> $columns */
     public function select(array|string ...$arguments): self;
+    public function when(bool $condition, Closure $callback): self;
     public function where(mixed ...$args): self;
     public function orWhere(mixed ...$args): self;
     public function whereNull(string $column): self;
@@ -40,6 +42,8 @@ interface IQueryBuilder {
     public function first(): ?array;
     public function delete(): bool;
 
+    public function getSqlType(): string;
+
     public function relations(array $relations): self;
     public function normalize(array $rules): self;
     public function casts(array $rules): self;
@@ -57,4 +61,8 @@ interface IQueryBuilder {
      */
     public function update(array $data): bool;
     public function flush(): void;
+
+    public function registerPlugin(IPlugin $plugin): void;
+    public function registerPlugins(array $plugins): void;
+    public function getPlugins(): array;
 }

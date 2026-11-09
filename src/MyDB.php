@@ -5,6 +5,8 @@ namespace MyDB;
 use MyDB\Exceptions\ConfigNotFoundException;
 use MyDB\Exceptions\DriverNotFoundException;
 use MyDB\Migration\IMigrationBuilder;
+use MyDB\QueryBuilder\Abstract\Plugin\IPlugin;
+use MyDB\QueryBuilder\Abstract\Plugin\QueryContext;
 use MyDB\QueryBuilder\IQueryBuilder;
 use MyDB\QueryBuilder\IUtils;
 use MyDB\Migration\MySQL\MigrationBuilder as MySqlMigrationBuilder;
@@ -12,6 +14,7 @@ use MyDB\QueryBuilder\MySQL\QueryBuilder as MySQLQueryBuilder;
 use MyDB\QueryBuilder\MySQL\Utils as MySqlUtils;
 use PDO;
 use PDOException;
+use Throwable;
 use Closure;
 
 final class MyDB {
@@ -24,6 +27,11 @@ final class MyDB {
     private IConnectionConfig $config;
 
     private PDO $pdo;
+
+    /**
+     * @var array<IPlugin>
+     */
+    private array $plugins = [];
 
     /**
      * @throws ConfigNotFoundException
@@ -47,6 +55,17 @@ final class MyDB {
         } catch (PDOException $e) {
             throw $e;
         }
+    }
+
+    public function registerPlugin(IPlugin $plugin): void {
+        $this->plugins[] = $plugin;
+    }
+
+    /**
+     * @param array<IPlugin> $plugins
+     */
+    public function registerPlugins(array $plugins): void {
+        $this->plugins = array_merge($this->plugins, $plugins);
     }
 
     /**
@@ -76,6 +95,18 @@ final class MyDB {
         }
     }
 
+    public function beginTransaction(): bool {
+        return $this->pdo->beginTransaction();
+    }
+
+    public function commit(): bool {
+        return $this->pdo->commit();
+    }
+
+    public function rollBack(): bool {
+        return $this->pdo->rollBack();
+    }
+
     /**
      * @param array<string, class-string<IConnectionConfig>> $configs
      */
@@ -89,25 +120,93 @@ final class MyDB {
         self::$default = $name;
     }
 
-    public function get(string $query, array $params = [], ?Closure $wrapper = null): array {
-        $query = $this->pdo->prepare($query);
-        $query->execute($params);
-
-        if(!is_null($wrapper)) {
-            $data = [];
-
-            while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
-                $data[] = $wrapper($row);
-            }
-            $query->closeCursor();
-            return $data;
+    /**
+     * @param string $query
+     * @param array $params
+     * @return array
+     */
+    public function get(string $query, array $params = [], ?IQueryBuilder $queryBuilder  = null): array {
+        if($queryBuilder === null) {
+            $query = $this->pdo->prepare($query);
+            $query->execute($params);
+            return $query->fetchAll(PDO::FETCH_ASSOC);
         }
 
-        return $query->fetchAll(PDO::FETCH_ASSOC);
+        return $this->runWithPlugins($query, $params, $queryBuilder, function() use ($query, $params) {
+            $query = $this->pdo->prepare($query);
+            $query->execute($params);
+            return $query->fetchAll(PDO::FETCH_ASSOC);
+        });
     }
 
-    public function execute(string $query, array $params = []): bool {
-        return $this->pdo->prepare($query)->execute($params);
+    public static function transaction(callable $callback): mixed {
+        $db = self::instance();
+        $db->beginTransaction();
+        try {
+            $result = $callback($db);
+            $db->commit();
+
+            return $result;
+        } catch (Throwable $e) {
+            $db->rollBack();
+            throw $e;
+        }
+    }
+
+    public static function lastInsertedId(): ?int {
+        $id = self::instance()->pdo->lastInsertId();
+        return $id ? (int)$id : null;
+    }
+
+
+    /**
+     * @param string $query
+     * @param array $params
+     * @param IQueryBuilder|null $queryBuilder
+     * @return bool
+     * @throws Throwable
+     */
+    public function execute(string $query, array $params = [], ?IQueryBuilder $queryBuilder  = null): bool {
+        if ($queryBuilder === null) {
+            return $this->pdo->prepare($query)->execute($params);
+        }
+        return $this->runWithPlugins($query, $params, $queryBuilder, fn() => $this->pdo->prepare($query)->execute($params));
+    }
+
+    private function runWithPlugins(string $sql, array $params, IQueryBuilder $queryBuilder, Closure $callback): mixed {
+        $context = new QueryContext(
+            type: $queryBuilder->getSqlType(),
+            builder: $queryBuilder,
+            sql: $sql,
+            params: $params
+        );
+
+        $plugins = $queryBuilder->getPlugins();
+        try {
+            foreach ($plugins as $plugin) {
+                $plugin->before($context);
+                if ($context->isShortCircuited()) {
+                    return $context->result;
+                }
+            }
+
+            $context->result = $callback();
+
+            foreach ($plugins as $plugin) {
+                $plugin->after($context);
+                if ($context->isShortCircuited()) {
+                    break;
+                }
+            }
+
+            return $context->result;
+
+        } catch (Throwable $e) {
+            foreach ($plugins as $plugin) {
+                $plugin->onError($context, $e);
+            }
+            throw $e;
+        }
     }
 
     public function utils(): IUtils {
@@ -137,6 +236,7 @@ final class MyDB {
         }
 
         if($queryBuilder){
+            $queryBuilder->registerPlugins($this->plugins);
             $queryBuilder->useDb($this);
             return $queryBuilder;
         }
